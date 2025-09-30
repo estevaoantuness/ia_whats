@@ -9,6 +9,7 @@ import makeWASocket, {
   proto
 } from '@whiskeysockets/baileys';
 import path from 'path';
+import fs from 'fs';
 import { WhatsAppMessage } from '../types';
 import { parseMessageFromBaileys, sleep } from '../utils/helpers';
 import logger from '../utils/logger';
@@ -29,6 +30,17 @@ export class WhatsAppService {
   async initialize(): Promise<void> {
     try {
       console.log(`📂 Session path: ${this.sessionPath}`);
+
+      // Clear session if CLEAR_WHATSAPP_SESSION is set
+      if (process.env.CLEAR_WHATSAPP_SESSION === 'true') {
+        console.log('🧹 CLEAR_WHATSAPP_SESSION detectado - Removendo sessão antiga...');
+        if (fs.existsSync(this.sessionPath)) {
+          fs.rmSync(this.sessionPath, { recursive: true, force: true });
+          console.log('✅ Sessão antiga removida! Novo QR Code será gerado.');
+        } else {
+          console.log('ℹ️  Nenhuma sessão antiga encontrada.');
+        }
+      }
 
       const { state, saveCreds } = await useMultiFileAuthState(this.sessionPath);
       const { version } = await fetchLatestBaileysVersion();
