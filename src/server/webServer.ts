@@ -25,7 +25,28 @@ export class WebServer {
   private setupRoutes(): void {
     // Serve dashboard HTML
     this.app.get('/', (req, res) => {
-      res.sendFile(path.join(__dirname, '../../public/business-panel.html'));
+      res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sara AI - Status</title>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    h1 { font-size: 3em; margin-bottom: 20px; }
+    a { color: white; font-size: 1.2em; text-decoration: none; background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 10px; display: inline-block; margin: 10px; }
+    a:hover { background: rgba(255,255,255,0.3); }
+  </style>
+</head>
+<body>
+  <h1>🌸 Sara AI</h1>
+  <p>Assistente de Produtividade - Online!</p>
+  <br>
+  <a href="/qr">📱 Conectar WhatsApp</a>
+  <a href="/health">💚 Status</a>
+</body>
+</html>
+      `);
     });
 
     // Health check
