@@ -32,6 +32,11 @@ export class GracefulShutdown {
     });
 
     process.on('unhandledRejection', async (reason, promise) => {
+      // Log the error but DON'T shutdown - let the app handle it
+      console.error('⚠️ Unhandled Promise Rejection:');
+      console.error('Reason:', reason);
+      console.error('Promise:', promise);
+
       // Ignore WhatsApp connection rejections during startup
       if (reason && typeof reason === 'object' && 'code' in reason) {
         if ((reason as any).code === 'ECONNRESET' || (reason as any).code === 'ENOTFOUND') {
@@ -40,8 +45,8 @@ export class GracefulShutdown {
         }
       }
 
-      logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-      await this.shutdown(1);
+      // Only log, don't shutdown - WhatsApp errors are handled in try-catch
+      logger.error('Unhandled Rejection (not shutting down):', reason);
     });
   }
 
