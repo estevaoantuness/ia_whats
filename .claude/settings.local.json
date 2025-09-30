@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run start:sara:*)",
+      "Bash(npm start)",
+      "Bash(curl:*)",
+      "Bash(sqlite3:*)",
+      "Bash(pkill:*)",
+      "Bash(node:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

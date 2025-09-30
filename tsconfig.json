@@ -1,0 +1,38 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    // File Layout
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // Environment Settings
+    "module": "commonjs",
+    "target": "ES2020",
+    "types": ["node"],
+    "lib": ["ES2020"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // Other Outputs
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // Stricter Typechecking Options
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    "strictNullChecks": false,
+
+    // Style Options
+    "noImplicitReturns": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+
+    // Recommended Options
+    "strict": true,
+    "verbatimModuleSyntax": false,
+    "isolatedModules": true,
+    "moduleDetection": "auto",
+    "skipLibCheck": true,
+  }
+}

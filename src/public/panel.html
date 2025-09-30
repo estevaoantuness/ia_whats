@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA WhatsApp Bot - Painel de Controle</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-header i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        .card-header h3 {
+            font-size: 1.3rem;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .status-connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-waiting {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-connecting {
+            background-color: #cce7ff;
+            color: #004085;
+        }
+
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .qr-code {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #27ae60, #229954);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .logs-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid transparent;
+        }
+
+        .log-error {
+            border-left-color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        .log-warn {
+            border-left-color: #f39c12;
+            background-color: rgba(243, 156, 18, 0.1);
+        }
+
+        .log-info {
+            border-left-color: #3498db;
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-robot"></i> IA WhatsApp Bot</h1>
+            <p>Painel de Controle e Monitoramento</p>
+        </div>
+
+        <div class="dashboard">
+            <!-- Status Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-wifi" style="color: #667eea;"></i>
+                    <h3>Status da Conexão</h3>
+                </div>
+                <div id="connection-status" class="status-indicator status-disconnected">
+                    <i class="fas fa-circle"></i> Desconectado
+                </div>
+                <div id="qr-section" class="qr-container hidden">
+                    <h4>Escaneie o QR Code com WhatsApp:</h4>
+                    <div id="qr-code" class="qr-code"></div>
+                    <p><small>Abra WhatsApp → Aparelhos conectados → Conectar aparelho</small></p>
+                </div>
+            </div>
+
+            <!-- System Stats -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line" style="color: #27ae60;"></i>
+                    <h3>Estatísticas do Sistema</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div id="uptime" class="stat-value">0h</div>
+                        <div class="stat-label">Uptime</div>
+                    </div>
+                    <div class="stat-item">
+                        <div id="memory" class="stat-value">0MB</div>
+                        <div class="stat-label">Memória</div>
+                    </div>
+                    <div class="stat-item">
+                        <div id="messages" class="stat-value">0</div>
+                        <div class="stat-label">Mensagens</div>
+                    </div>
+                    <div class="stat-item">
+                        <div id="users" class="stat-value">0</div>
+                        <div class="stat-label">Usuários</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Message -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-paper-plane" style="color: #3498db;"></i>
+                    <h3>Enviar Mensagem de Teste</h3>
+                </div>
+                <div class="input-group">
+                    <label for="test-number">Número (com código do país):</label>
+                    <input type="text" id="test-number" placeholder="+5511999999999">
+                </div>
+                <div class="input-group">
+                    <label for="test-message">Mensagem:</label>
+                    <textarea id="test-message" rows="3" placeholder="Olá! Esta é uma mensagem de teste do bot."></textarea>
+                </div>
+                <button class="btn" onclick="sendTestMessage()">
+                    <i class="fas fa-paper-plane"></i> Enviar Teste
+                </button>
+                <div id="test-result"></div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-cogs" style="color: #e67e22;"></i>
+                    <h3>Ações do Sistema</h3>
+                </div>
+                <button class="btn btn-success" onclick="refreshStats()">
+                    <i class="fas fa-sync-alt"></i> Atualizar Stats
+                </button>
+                <button class="btn btn-danger" onclick="cleanupDatabase()">
+                    <i class="fas fa-trash"></i> Limpar BD
+                </button>
+                <button class="btn" onclick="viewLogs('combined')">
+                    <i class="fas fa-file-alt"></i> Ver Logs
+                </button>
+                <button class="btn" onclick="downloadLogs()">
+                    <i class="fas fa-download"></i> Download Logs
+                </button>
+            </div>
+
+            <!-- Logs -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <i class="fas fa-terminal" style="color: #9b59b6;"></i>
+                    <h3>Logs do Sistema</h3>
+                </div>
+                <div class="logs-container" id="logs-container">
+                    <div class="log-entry">Carregando logs...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let eventSource = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeRealtime();
+            refreshStats();
+            loadLogs();
+        });
+
+        function initializeRealtime() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            eventSource = new EventSource('/api/realtime');
+
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                updateConnectionStatus(data.connection, data.qrCode);
+                updateSystemStats(data.stats);
+            };
+
+            eventSource.onerror = function(event) {
+                console.error('EventSource failed:', event);
+                setTimeout(initializeRealtime, 5000);
+            };
+        }
+
+        function updateConnectionStatus(status, qrCode) {
+            const statusElement = document.getElementById('connection-status');
+            const qrSection = document.getElementById('qr-section');
+            const qrCodeElement = document.getElementById('qr-code');
+
+            statusElement.className = 'status-indicator';
+
+            switch(status) {
+                case 'connected':
+                    statusElement.classList.add('status-connected');
+                    statusElement.innerHTML = '<i class="fas fa-check-circle"></i> Conectado';
+                    qrSection.classList.add('hidden');
+                    break;
+                case 'waiting_for_scan':
+                    statusElement.classList.add('status-waiting');
+                    statusElement.innerHTML = '<i class="fas fa-qrcode"></i> Aguardando QR Scan';
+                    qrSection.classList.remove('hidden');
+                    if (qrCode) {
+                        generateQRCode(qrCode);
+                    }
+                    break;
+                case 'connecting':
+                    statusElement.classList.add('status-connecting');
+                    statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando';
+                    qrSection.classList.add('hidden');
+                    break;
+                default:
+                    statusElement.classList.add('status-disconnected');
+                    statusElement.innerHTML = '<i class="fas fa-times-circle"></i> Desconectado';
+                    qrSection.classList.add('hidden');
+            }
+        }
+
+        function generateQRCode(qrData) {
+            // Simple QR code generation using a service
+            const qrElement = document.getElementById('qr-code');
+            qrElement.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}" alt="QR Code">`;
+        }
+
+        function updateSystemStats(stats) {
+            if (stats) {
+                document.getElementById('uptime').textContent = Math.floor(stats.uptime / 3600) + 'h';
+                document.getElementById('memory').textContent = Math.round(stats.memoryUsage.heapUsed / 1024 / 1024) + 'MB';
+                document.getElementById('messages').textContent = stats.messageCount || 0;
+            }
+        }
+
+        async function refreshStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+
+                if (data.context) {
+                    document.getElementById('users').textContent = data.context.activeContexts || 0;
+                }
+            } catch (error) {
+                console.error('Error refreshing stats:', error);
+            }
+        }
+
+        async function sendTestMessage() {
+            const number = document.getElementById('test-number').value;
+            const message = document.getElementById('test-message').value;
+            const resultDiv = document.getElementById('test-result');
+
+            if (!number || !message) {
+                showAlert('Por favor, preencha número e mensagem', 'error', resultDiv);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/send-test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ number, message })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Mensagem enviada com sucesso!', 'success', resultDiv);
+                } else {
+                    showAlert('Erro: ' + result.error, 'error', resultDiv);
+                }
+            } catch (error) {
+                showAlert('Erro de conexão: ' + error.message, 'error', resultDiv);
+            }
+        }
+
+        async function cleanupDatabase() {
+            if (!confirm('Tem certeza que deseja limpar dados antigos do banco?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/cleanup', {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Limpeza concluída com sucesso!');
+                    refreshStats();
+                } else {
+                    alert('Erro na limpeza: ' + result.error);
+                }
+            } catch (error) {
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+
+        async function loadLogs() {
+            try {
+                const response = await fetch('/api/logs/combined');
+                const data = await response.json();
+
+                const logsContainer = document.getElementById('logs-container');
+                logsContainer.innerHTML = '';
+
+                if (data.logs && data.logs.length > 0) {
+                    data.logs.forEach(log => {
+                        const logDiv = document.createElement('div');
+                        logDiv.className = 'log-entry';
+
+                        if (log.includes('error')) {
+                            logDiv.classList.add('log-error');
+                        } else if (log.includes('warn')) {
+                            logDiv.classList.add('log-warn');
+                        } else {
+                            logDiv.classList.add('log-info');
+                        }
+
+                        logDiv.textContent = log;
+                        logsContainer.appendChild(logDiv);
+                    });
+                } else {
+                    logsContainer.innerHTML = '<div class="log-entry">Nenhum log encontrado</div>';
+                }
+            } catch (error) {
+                console.error('Error loading logs:', error);
+            }
+        }
+
+        function viewLogs(type) {
+            loadLogs();
+        }
+
+        function downloadLogs() {
+            window.open('/api/logs/combined', '_blank');
+        }
+
+        function showAlert(message, type, container) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+
+            container.innerHTML = '';
+            container.appendChild(alertDiv);
+
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Refresh logs every 30 seconds
+        setInterval(loadLogs, 30000);
+    </script>
+</body>
+</html>

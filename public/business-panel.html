@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 IA WhatsApp Business - Painel de Controle</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 50%, #075E54 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        /* Tabs Navigation */
+        .tabs-nav {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .tabs-nav button {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            margin: 0 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        .tabs-nav button:hover { background: rgba(255,255,255,0.2); }
+        .tabs-nav button.active { background: white; color: #25D366; }
+
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Cards */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card-header { display: flex; align-items: center; margin-bottom: 20px; }
+        .card-header i { font-size: 1.5rem; margin-right: 10px; }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .status-connected { background-color: #d4edda; color: #155724; }
+        .status-disconnected { background-color: #f8d7da; color: #721c24; }
+        .status-waiting { background-color: #fff3cd; color: #856404; }
+        .status-connecting { background-color: #cce5ff; color: #004085; }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(45deg, #25D366, #128C7E);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        /* Form Elements */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* QR Code */
+        .qr-container { text-align: center; padding: 20px; }
+        .qr-display { margin: 20px 0; }
+        .qr-display img { max-width: 250px; border: 3px solid #25D366; border-radius: 15px; }
+
+        /* Logs */
+        .logs-container {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry { margin-bottom: 5px; padding: 5px; border-radius: 3px; }
+        .log-info { background: #e3f2fd; }
+        .log-success { background: #e8f5e8; }
+        .log-error { background: #ffebee; }
+        .log-warning { background: #fff3e0; }
+
+        /* Alerts */
+        .alert { padding: 15px; margin: 10px 0; border-radius: 8px; font-weight: bold; }
+        .alert-success { background-color: #d4edda; color: #155724; }
+        .alert-error { background-color: #f8d7da; color: #721c24; }
+        .alert-warning { background-color: #fff3cd; color: #856404; }
+
+        /* Mode Switch */
+        .mode-switch {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .mode-switch label { margin-right: 10px; font-weight: bold; }
+        .mode-switch select {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-right: 15px;
+        }
+
+        /* Utility */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mt-10 { margin-top: 10px; }
+        .mb-10 { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fab fa-whatsapp"></i> IA WhatsApp Business</h1>
+            <p>Painel de Controle Completo - Suporte Business & Personal</p>
+        </div>
+
+        <!-- Navegação das Abas -->
+        <nav class="tabs-nav">
+            <button class="tab-button active" onclick="switchTab('connection')">
+                <i class="fas fa-wifi"></i> Conexão
+            </button>
+            <button class="tab-button" onclick="switchTab('qrcode')">
+                <i class="fas fa-qrcode"></i> QR Code
+            </button>
+            <button class="tab-button" onclick="switchTab('messages')">
+                <i class="fas fa-comments"></i> Mensagens
+            </button>
+            <button class="tab-button" onclick="switchTab('settings')">
+                <i class="fas fa-cogs"></i> Configurações
+            </button>
+        </nav>
+
+        <!-- Aba de Conexão -->
+        <div id="connection-tab" class="tab-content active">
+            <div class="dashboard">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-plug" style="color: #25D366;"></i>
+                        <h3>Status da Conexão</h3>
+                    </div>
+
+                    <div class="mode-switch">
+                        <label>Modo:</label>
+                        <select id="mode-selector" onchange="changeModeIfDisconnected()">
+                            <option value="personal">WhatsApp Personal</option>
+                            <option value="business">WhatsApp Business</option>
+                        </select>
+                        <span id="current-mode-text">Personal</span>
+                    </div>
+
+                    <div id="connection-status" class="status-indicator status-disconnected">
+                        <i class="fas fa-circle"></i> <span id="status-text">Carregando...</span>
+                    </div>
+
+                    <button class="btn" onclick="startWhatsApp()" id="connect-btn">
+                        <i class="fas fa-play"></i> Conectar WhatsApp
+                    </button>
+                    <button class="btn" onclick="refreshStatus()">
+                        <i class="fas fa-sync-alt"></i> Atualizar Status
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line" style="color: #128C7E;"></i>
+                        <h3>Estatísticas</h3>
+                    </div>
+                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                            <div id="uptime" style="font-size: 1.8rem; font-weight: bold; color: #25D366;">0h</div>
+                            <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">Uptime</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                            <div id="messages" style="font-size: 1.8rem; font-weight: bold; color: #25D366;">0</div>
+                            <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">Mensagens</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba de QR Code -->
+        <div id="qrcode-tab" class="tab-content">
+            <div class="dashboard">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-qrcode" style="color: #25D366;"></i>
+                        <h3>QR Code para Conexão</h3>
+                    </div>
+
+                    <div id="qr-instructions" class="text-center mb-10">
+                        <h4>Como conectar:</h4>
+                        <ol style="text-align: left; margin: 15px 0; padding-left: 20px;">
+                            <li>Abra o WhatsApp no seu celular</li>
+                            <li id="mode-instruction">Vá em Configurações > Aparelhos conectados</li>
+                            <li>Toque em "Conectar um aparelho"</li>
+                            <li>Escaneie o QR Code abaixo</li>
+                        </ol>
+                    </div>
+
+                    <div id="qr-section" class="qr-container hidden">
+                        <div id="qr-display"></div>
+                        <p><small>Mantenha o QR Code na tela até a conexão ser estabelecida</small></p>
+                        <div class="mt-10">
+                            <button class="btn" onclick="refreshQRCode()">
+                                <i class="fas fa-redo"></i> Renovar QR Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="no-qr-message" class="text-center">
+                        <p><i class="fas fa-info-circle"></i> Inicie a conexão na aba "Conexão" para gerar o QR Code</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba de Mensagens -->
+        <div id="messages-tab" class="tab-content">
+            <div class="dashboard">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-paper-plane" style="color: #128C7E;"></i>
+                        <h3>Teste de Mensagem</h3>
+                    </div>
+                    <div class="input-group">
+                        <label>Número (com código do país):</label>
+                        <input type="text" id="test-number" placeholder="+5511999999999">
+                    </div>
+                    <div class="input-group">
+                        <label>Mensagem:</label>
+                        <textarea id="test-message" rows="3" placeholder="Olá! Esta é uma mensagem de teste."></textarea>
+                    </div>
+                    <button class="btn" onclick="sendTestMessage()">
+                        <i class="fas fa-paper-plane"></i> Enviar Teste
+                    </button>
+                    <div id="test-result"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-list" style="color: #25D366;"></i>
+                        <h3>Log de Atividades</h3>
+                    </div>
+                    <div id="logs-container" class="logs-container"></div>
+                    <div class="mt-10">
+                        <button class="btn" onclick="clearLogs()">
+                            <i class="fas fa-trash"></i> Limpar Logs
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba de Configurações -->
+        <div id="settings-tab" class="tab-content">
+            <div class="dashboard">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-robot" style="color: #128C7E;"></i>
+                        <h3>Teste IA (Gemini/OpenAI)</h3>
+                    </div>
+                    <button class="btn" onclick="testAI()">
+                        <i class="fas fa-robot"></i> Testar IA
+                    </button>
+                    <div id="ai-result"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-comments" style="color: #25D366;"></i>
+                        <h3>Chat com Sara.ai</h3>
+                    </div>
+                    <div id="sara-chat-container" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px; height: 200px; overflow-y: auto; padding: 10px; margin-bottom: 15px; font-size: 14px;">
+                        <div style="background: rgba(255,182,193,0.3); padding: 8px; margin: 5px 0; border-radius: 8px;">
+                            <strong>Sara:</strong> Olá! Sou a Sara, sua assistente de produtividade! 🌸 Como posso ajudar?
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="sara-chat-input" placeholder="Digite sua mensagem..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" onkeypress="handleSaraChatKeyPress(event)">
+                        <button class="btn" onclick="sendSaraMessage()">
+                            <i class="fas fa-paper-plane"></i> Enviar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-tools" style="color: #25D366;"></i>
+                        <h3>Ações do Sistema</h3>
+                    </div>
+                    <button class="btn" onclick="restartBot()">
+                        <i class="fas fa-redo"></i> Reiniciar Bot
+                    </button>
+                    <button class="btn" onclick="clearSessions()">
+                        <i class="fas fa-trash-alt"></i> Limpar Sessões
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'personal';
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+
+            // Update QR instructions based on current mode
+            if (tabName === 'qrcode') {
+                updateQRInstructions();
+            }
+        }
+
+        function updateQRInstructions() {
+            const instruction = document.getElementById('mode-instruction');
+            if (currentMode === 'business') {
+                instruction.textContent = 'Vá em Configurações > Aparelhos conectados (WhatsApp Business)';
+            } else {
+                instruction.textContent = 'Vá em Configurações > Aparelhos conectados';
+            }
+        }
+
+        function changeModeIfDisconnected() {
+            const newMode = document.getElementById('mode-selector').value;
+            const statusText = document.getElementById('status-text').textContent;
+
+            if (statusText === 'Conectado') {
+                document.getElementById('mode-selector').value = currentMode;
+                showAlert('Desconecte primeiro para alterar o modo!', 'warning');
+                return;
+            }
+
+            currentMode = newMode;
+            document.getElementById('current-mode-text').textContent = newMode === 'business' ? 'Business' : 'Personal';
+            addLog('Modo alterado para: ' + (newMode === 'business' ? 'WhatsApp Business' : 'WhatsApp Personal'), 'info');
+        }
+
+        async function refreshStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                updateStatus(data.status, data.qrCode);
+                updateStats(data.uptime, data.messageCount);
+            } catch (error) {
+                console.error('Error refreshing status:', error);
+                addLog('Erro ao atualizar status: ' + error.message, 'error');
+            }
+        }
+
+        function updateStatus(status, qrCode) {
+            const statusElement = document.getElementById('connection-status');
+            const statusText = document.getElementById('status-text');
+            const qrSection = document.getElementById('qr-section');
+            const noQrMessage = document.getElementById('no-qr-message');
+            const connectBtn = document.getElementById('connect-btn');
+
+            statusElement.className = 'status-indicator';
+
+            switch(status) {
+                case 'connected':
+                    statusElement.classList.add('status-connected');
+                    statusText.textContent = 'Conectado';
+                    qrSection.classList.add('hidden');
+                    noQrMessage.classList.remove('hidden');
+                    connectBtn.innerHTML = '<i class="fas fa-stop"></i> Desconectar';
+                    break;
+                case 'waiting':
+                    statusElement.classList.add('status-waiting');
+                    statusText.textContent = 'Aguardando QR Scan';
+                    qrSection.classList.remove('hidden');
+                    noQrMessage.classList.add('hidden');
+                    connectBtn.innerHTML = '<i class="fas fa-stop"></i> Cancelar';
+                    if (qrCode) {
+                        document.getElementById('qr-display').innerHTML =
+                            '<img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(qrCode) + '" alt="QR Code">';
+                    }
+                    break;
+                case 'connecting':
+                    statusElement.classList.add('status-connecting');
+                    statusText.textContent = 'Conectando...';
+                    connectBtn.disabled = true;
+                    break;
+                default:
+                    statusElement.classList.add('status-disconnected');
+                    statusText.textContent = 'Desconectado';
+                    qrSection.classList.add('hidden');
+                    noQrMessage.classList.remove('hidden');
+                    connectBtn.innerHTML = '<i class="fas fa-play"></i> Conectar WhatsApp';
+                    connectBtn.disabled = false;
+            }
+        }
+
+        function updateStats(uptime, messageCount) {
+            document.getElementById('uptime').textContent = Math.floor(uptime / 3600) + 'h';
+            document.getElementById('messages').textContent = messageCount || 0;
+        }
+
+        async function startWhatsApp() {
+            const connectBtn = document.getElementById('connect-btn');
+            const statusText = document.getElementById('status-text').textContent;
+
+            if (statusText === 'Conectado') {
+                if (confirm('Deseja realmente desconectar?')) {
+                    // Implementar desconexão
+                    addLog('Desconectando...', 'info');
+                }
+                return;
+            }
+
+            try {
+                addLog('Iniciando conexão WhatsApp ' + currentMode + '...', 'info');
+
+                const response = await fetch('/api/start-whatsapp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: currentMode })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog(result.message || 'WhatsApp ' + currentMode + ' iniciado!', 'success');
+                    showAlert('✅ WhatsApp ' + currentMode + ' iniciado! Aguarde o QR Code...', 'success');
+                    setTimeout(refreshStatus, 2000);
+                } else {
+                    addLog('Erro: ' + result.error, 'error');
+                    showAlert('❌ Erro: ' + result.error, 'error');
+                }
+            } catch (error) {
+                addLog('Erro de conexão: ' + error.message, 'error');
+                showAlert('❌ Erro de conexão: ' + error.message, 'error');
+            }
+        }
+
+        async function refreshQRCode() {
+            addLog('Renovando QR Code...', 'info');
+            await startWhatsApp();
+        }
+
+        async function sendTestMessage() {
+            const number = document.getElementById('test-number').value;
+            const message = document.getElementById('test-message').value;
+
+            if (!number || !message) {
+                showAlert('❌ Preencha número e mensagem', 'error');
+                return;
+            }
+
+            try {
+                addLog('Enviando mensagem teste para: ' + number, 'info');
+
+                const response = await fetch('/api/send-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number, message })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog('✅ Mensagem enviada com sucesso!', 'success');
+                    showAlert('✅ Mensagem enviada!', 'success');
+                } else {
+                    addLog('❌ Erro ao enviar: ' + result.error, 'error');
+                    showAlert('❌ Erro: ' + result.error, 'error');
+                }
+            } catch (error) {
+                addLog('❌ Erro: ' + error.message, 'error');
+                showAlert('❌ Erro: ' + error.message, 'error');
+            }
+        }
+
+        async function testAI() {
+            try {
+                addLog('Testando conexão IA (Gemini/OpenAI)...', 'info');
+
+                const response = await fetch('/api/test-ai', { method: 'POST' });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const provider = result.provider || 'IA';
+                    const shortResponse = result.response.substring(0, 80) + (result.response.length > 80 ? '...' : '');
+                    addLog(`✅ ${provider} funcionando: ${shortResponse}`, 'success');
+                    showAlert(`✅ ${provider} funcionando!`, 'success');
+                    document.getElementById('ai-result').innerHTML = `<div class="alert alert-success"><strong>${provider} Response:</strong><br>${result.response.replace(/\n/g, '<br>')}</div>`;
+                } else {
+                    addLog('❌ Erro IA: ' + result.error, 'error');
+                    showAlert('❌ Erro IA: ' + result.error, 'error');
+                    document.getElementById('ai-result').innerHTML = `<div class="alert alert-error">Erro: ${result.error}</div>`;
+                }
+            } catch (error) {
+                addLog('❌ Erro: ' + error.message, 'error');
+                showAlert('❌ Erro: ' + error.message, 'error');
+                document.getElementById('ai-result').innerHTML = `<div class="alert alert-error">Erro: ${error.message}</div>`;
+            }
+        }
+
+        // Manter compatibilidade com função antiga
+        async function testOpenAI() {
+            return await testAI();
+        }
+
+        async function restartBot() {
+            if (confirm('Deseja reiniciar o bot?')) {
+                addLog('Reiniciando bot...', 'info');
+                showAlert('🔄 Reiniciando bot...', 'warning');
+            }
+        }
+
+        async function clearSessions() {
+            if (confirm('Deseja limpar todas as sessões? Isso irá desconectar o WhatsApp.')) {
+                addLog('Limpando sessões...', 'info');
+                showAlert('🗑️ Limpando sessões...', 'warning');
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const logsContainer = document.getElementById('logs-container');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry log-' + type;
+            logEntry.innerHTML = '<strong>' + timestamp + '</strong> ' + message;
+
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs-container').innerHTML = '';
+            addLog('Logs limpos', 'info');
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-' + type;
+            alertDiv.textContent = message;
+
+            document.querySelector('.container').appendChild(alertDiv);
+
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+
+        // Sara Chat Functions
+        async function sendSaraMessage() {
+            const input = document.getElementById('sara-chat-input');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message
+            addSaraMessage(message, 'user');
+            input.value = '';
+
+            try {
+                // Show typing indicator
+                addSaraMessage('Sara está digitando...', 'sara', true);
+
+                const response = await fetch('/api/sara-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message, userId: 'dashboard-user' })
+                });
+
+                const result = await response.json();
+
+                // Remove typing indicator
+                removeTypingIndicator();
+
+                if (result.success) {
+                    addSaraMessage(result.response, 'sara');
+                    addLog(`💬 Sara respondeu: ${result.response.substring(0, 50)}...`, 'success');
+                } else {
+                    addSaraMessage('Desculpe, houve um erro: ' + result.error, 'sara');
+                    addLog('❌ Erro no chat Sara: ' + result.error, 'error');
+                }
+            } catch (error) {
+                removeTypingIndicator();
+                addSaraMessage('Erro de conexão. Verifique se o servidor está funcionando.', 'sara');
+                addLog('❌ Erro de conexão Sara: ' + error.message, 'error');
+            }
+        }
+
+        function addSaraMessage(text, sender, isTyping = false) {
+            const container = document.getElementById('sara-chat-container');
+            const messageDiv = document.createElement('div');
+
+            if (isTyping) {
+                messageDiv.id = 'typing-indicator';
+                messageDiv.style.cssText = 'background: rgba(200,200,200,0.3); padding: 6px; margin: 3px 0; border-radius: 6px; font-style: italic; opacity: 0.7;';
+            } else if (sender === 'user') {
+                messageDiv.style.cssText = 'background: rgba(37,211,102,0.3); padding: 8px; margin: 5px 0; border-radius: 8px; text-align: right;';
+                messageDiv.innerHTML = '<strong>Você:</strong> ' + text;
+            } else {
+                messageDiv.style.cssText = 'background: rgba(255,182,193,0.3); padding: 8px; margin: 5px 0; border-radius: 8px;';
+                messageDiv.innerHTML = '<strong>Sara:</strong> ' + text.replace(/\\n/g, '<br>');
+            }
+
+            if (isTyping) {
+                messageDiv.textContent = text;
+            }
+
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function handleSaraChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendSaraMessage();
+            }
+        }
+
+        // Auto refresh
+        setInterval(refreshStatus, 5000);
+
+        // Carregar status inicial
+        refreshStatus();
+        addLog('Painel Business inicializado', 'success');
+    </script>
+</body>
+</html>

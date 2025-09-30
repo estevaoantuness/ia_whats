@@ -1,0 +1,49 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/mcp.json",
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@executeautomation/playwright-mcp-server"
+      ],
+      "description": "Browser automation with Playwright - enables Sara to interact with web pages, take screenshots, and automate browser tasks"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/estevaoantunes/ia_whats"
+      ],
+      "description": "Filesystem access - allows Sara to read/write files in the project directory"
+    },
+    "web-fetch": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-fetch"
+      ],
+      "description": "Web fetching capabilities - enables Sara to fetch content from URLs and APIs"
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "GitHub integration - allows Sara to interact with GitHub repositories, issues, and pull requests"
+    },
+    "browser-use": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ],
+      "description": "Advanced browser automation - additional browser capabilities for complex web interactions"
+    }
+  }
+}

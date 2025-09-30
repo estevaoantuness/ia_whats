@@ -1,0 +1,71 @@
+{
+  "name": "ia_whats",
+  "version": "1.0.0",
+  "description": "IA WhatsApp Bot usando OpenAI e Baileys",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "start:sara": "node dist/sara-index.js",
+    "dev": "nodemon src/index.ts",
+    "dev:sara": "nodemon src/sara-index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "prettier": "prettier --write src/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "ai",
+    "openai",
+    "baileys",
+    "chatbot"
+  ],
+  "author": "IA WhatsApp Bot",
+  "license": "ISC",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=17.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
+    "@types/qrcode-terminal": "^0.12.2",
+    "@types/sqlite3": "^3.1.11",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@adiwajshing/keyed-db": "^0.2.4",
+    "@google/generative-ai": "^0.24.1",
+    "@hapi/boom": "^10.0.1",
+    "@types/node-cron": "^3.0.11",
+    "@types/uuid": "^10.0.0",
+    "@whiskeysockets/baileys": "^6.7.8",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "libsodium": "^0.7.15",
+    "libsodium-wrappers": "^0.7.15",
+    "libsodium-wrappers-sumo": "^0.7.15",
+    "node-cron": "^4.2.1",
+    "openai": "^5.23.1",
+    "qrcode-terminal": "^0.12.0",
+    "sqlite3": "^5.1.7",
+    "uuid": "^13.0.0",
+    "winston": "^3.17.0"
+  }
+}
