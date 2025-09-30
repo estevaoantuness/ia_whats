@@ -130,7 +130,8 @@ export class WhatsAppService {
       console.log('2. Vá em Menu → Aparelhos conectados');
       console.log('3. Toque em "Conectar um aparelho"');
       console.log('4. Escaneie o código acima\n');
-      logger.info('QR Code generated. Access /qr endpoint to see it on browser.');
+      console.log(`✅ QR Code armazenado (${qr.length} chars) - Acesse /qr no navegador AGORA!`);
+      logger.info('QR Code generated and stored. Access /qr endpoint IMMEDIATELY to scan it.');
     }
 
     if (connection === 'close') {
