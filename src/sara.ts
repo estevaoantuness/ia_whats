@@ -71,13 +71,19 @@ export class SaraBot {
 
       // Try to initialize WhatsApp connection (continue even if it fails)
       try {
+        console.log('📱 INICIANDO WHATSAPP - Tentando conectar...');
         await this.whatsappService.initialize();
         this.whatsappService.onMessage(async (message) => {
           await this.messageHandler.handleMessage(message);
         });
+        console.log('✅ WhatsApp connection initialized successfully');
         logger.info('WhatsApp connection initialized successfully');
       } catch (whatsappError) {
-        logger.warn('WhatsApp failed to initialize, continuing with web-only mode:', whatsappError);
+        console.error('❌❌❌ ERRO CRÍTICO NO WHATSAPP ❌❌❌');
+        console.error('Erro completo:', whatsappError);
+        console.error('Stack trace:', (whatsappError as Error).stack);
+        logger.error('WhatsApp failed to initialize:', whatsappError);
+        logger.warn('Continuing in web-only mode without WhatsApp');
       }
 
       // Initialize user schedules
