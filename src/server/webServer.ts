@@ -43,6 +43,176 @@ export class WebServer {
       });
     });
 
+    // QR Code page
+    this.app.get('/qr', (req, res) => {
+      const qrCode = this.saraBot?.getQRCode();
+      const isConnected = this.saraBot?.isConnected();
+
+      const html = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sara AI - QR Code WhatsApp</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.waiting {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .qr-container {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        #qrcode {
+            margin: 0 auto;
+            max-width: 300px;
+        }
+        .instructions {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .instructions ol {
+            margin-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .loading {
+            color: #667eea;
+            font-size: 18px;
+        }
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🌸 Sara AI</h1>
+        <p class="subtitle">Assistente de Produtividade</p>
+
+        ${isConnected ? `
+            <div class="status connected">
+                ✅ WhatsApp Conectado!
+            </div>
+            <p>Seu WhatsApp já está conectado e funcionando.</p>
+        ` : qrCode ? `
+            <div class="status waiting">
+                📱 Aguardando Conexão...
+            </div>
+
+            <div class="qr-container">
+                <div id="qrcode"></div>
+            </div>
+
+            <div class="instructions">
+                <h3>Como Conectar:</h3>
+                <ol>
+                    <li>Abra o <strong>WhatsApp</strong> no seu celular</li>
+                    <li>Toque em <strong>Menu</strong> ou <strong>Configurações</strong></li>
+                    <li>Selecione <strong>Aparelhos Conectados</strong></li>
+                    <li>Toque em <strong>Conectar um Aparelho</strong></li>
+                    <li>Aponte a câmera para o QR Code acima</li>
+                </ol>
+            </div>
+
+            <button class="refresh-btn" onclick="location.reload()">🔄 Atualizar</button>
+
+            <script>
+                QRCode.toCanvas(document.getElementById('qrcode'), '${qrCode}', {
+                    width: 300,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#ffffff'
+                    }
+                });
+
+                // Auto-refresh every 5 seconds
+                setTimeout(() => location.reload(), 5000);
+            </script>
+        ` : `
+            <div class="status waiting">
+                ⏳ Gerando QR Code...
+            </div>
+            <p class="loading">Aguarde enquanto o QR Code é gerado...</p>
+            <button class="refresh-btn" onclick="location.reload()">🔄 Atualizar</button>
+            <script>
+                // Auto-refresh every 3 seconds until QR appears
+                setTimeout(() => location.reload(), 3000);
+            </script>
+        `}
+    </div>
+</body>
+</html>
+      `;
+
+      res.send(html);
+    });
+
     // Get status
     this.app.get('/api/status', (req, res) => {
       try {

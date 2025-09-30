@@ -20,6 +20,7 @@ export class WhatsAppService {
   private reconnectDelay = 5000;
   private sessionPath: string;
   private onMessageCallback: ((message: WhatsAppMessage) => Promise<void>) | null = null;
+  private currentQR: string | null = null;
 
   constructor(sessionName: string = 'ia_whatsapp_session') {
     this.sessionPath = path.join(process.cwd(), 'data', 'auth', sessionName);
@@ -85,6 +86,7 @@ export class WhatsAppService {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
+      this.currentQR = qr; // Store QR code
       console.log('\n🔗 QR CODE PARA CONECTAR WHATSAPP:');
       console.log('\n' + qr);
       console.log('\n📱 Escaneie este QR Code com seu WhatsApp:');
@@ -92,7 +94,7 @@ export class WhatsAppService {
       console.log('2. Vá em Menu → Aparelhos conectados');
       console.log('3. Toque em "Conectar um aparelho"');
       console.log('4. Escaneie o código acima\n');
-      logger.info('QR Code generated. Please scan with WhatsApp mobile app.');
+      logger.info('QR Code generated. Access /qr endpoint to see it on browser.');
     }
 
     if (connection === 'close') {
@@ -254,6 +256,10 @@ export class WhatsAppService {
       user: this.socket?.user,
       reconnectAttempts: this.reconnectAttempts
     };
+  }
+
+  getQRCode(): string | null {
+    return this.currentQR;
   }
 
   async disconnect(): Promise<void> {

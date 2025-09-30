@@ -128,6 +128,10 @@ export class SaraBot {
     return this.whatsappService?.isConnected() || false;
   }
 
+  getQRCode(): string | null {
+    return this.whatsappService?.getQRCode() || null;
+  }
+
   async processMessage(userId: string, message: string): Promise<string> {
     const whatsappMessage: WhatsAppMessage = {
       id: 'web-' + Date.now(),
