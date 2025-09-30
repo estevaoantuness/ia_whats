@@ -84,7 +84,8 @@ export class SaraBot {
       await this.scheduler.initializeUserSchedules();
 
       // Start web server
-      await this.webServer.start(3001);
+      const port = parseInt(process.env.PORT || '3000');
+      await this.webServer.start(port);
 
       // Set up graceful shutdown
       gracefulShutdown.setServices(this.whatsappService, this.db);
