@@ -245,6 +245,12 @@ export class SaraBot {
       exportedAt: new Date().toISOString()
     };
   }
+
+  async forceResetWhatsAppSession(): Promise<void> {
+    logger.info('Admin: Force resetting WhatsApp session...');
+    await this.whatsappService.forceResetSession();
+    logger.info('Admin: WhatsApp session reset complete');
+  }
 }
 
 // Factory function for easy initialization

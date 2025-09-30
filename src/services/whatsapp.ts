@@ -306,4 +306,48 @@ export class WhatsAppService {
       logger.info('WhatsApp service disconnected');
     }
   }
+
+  async forceResetSession(): Promise<void> {
+    try {
+      console.log('🚨 FORCE RESET SESSION - Starting...');
+
+      // 1. Disconnect current socket
+      if (this.socket) {
+        console.log('🔌 Disconnecting current socket...');
+        try {
+          await this.socket.logout();
+        } catch (e) {
+          console.log('⚠️ Logout failed (socket may be dead):', e);
+        }
+        this.socket = null;
+      }
+
+      // 2. Clear QR code from memory
+      this.currentQR = null;
+      console.log('🧹 Cleared QR code from memory');
+
+      // 3. Delete session files
+      if (fs.existsSync(this.sessionPath)) {
+        console.log(`🗑️ Deleting session folder: ${this.sessionPath}`);
+        fs.rmSync(this.sessionPath, { recursive: true, force: true });
+        console.log('✅ Session folder deleted');
+      } else {
+        console.log('ℹ️ No session folder to delete');
+      }
+
+      // 4. Reset reconnect attempts
+      this.reconnectAttempts = 0;
+
+      console.log('✅ FORCE RESET COMPLETE - Reinitializing...');
+
+      // 5. Reinitialize with fresh session
+      await this.initialize();
+
+      console.log('🎉 WhatsApp reinitialized with fresh session!');
+    } catch (error) {
+      console.error('❌ Force reset failed:', error);
+      logger.error('Force reset session failed:', error);
+      throw error;
+    }
+  }
 }

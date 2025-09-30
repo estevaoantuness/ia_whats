@@ -553,7 +553,9 @@ export class WebServer {
         <h2>🔄 Actions</h2>
         <button onclick="runFullDiagnostic()">🔍 Run Full Diagnostic</button>
         <button onclick="testSimpleQR()">🧪 Test Simple QR</button>
+        <button onclick="forceResetSession()" style="background: #ff0000;">🚨 LIMPAR SESSÃO & GERAR NOVO QR</button>
         <button onclick="location.reload()">♻️ Reload Page</button>
+        <div id="resetStatus" style="margin-top: 15px;"></div>
     </div>
 
     <div class="section">
@@ -675,6 +677,38 @@ export class WebServer {
             }
         }
 
+        async function forceResetSession() {
+            log('🚨 Force reset session requested...', 'info');
+            const resetStatus = document.getElementById('resetStatus');
+
+            try {
+                resetStatus.innerHTML = '<span class="warning">⏳ Limpando sessão...</span>';
+
+                const response = await fetch('/api/force-reset-whatsapp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    log('✅ Session reset successful!', 'success');
+                    resetStatus.innerHTML = '<span class="success">✅ Sessão limpa! Aguarde 5-10s e clique em "Run Full Diagnostic"</span>';
+
+                    // Auto-run diagnostic after 8 seconds
+                    setTimeout(() => {
+                        resetStatus.innerHTML = '<span class="success">🔄 Rodando diagnóstico automático...</span>';
+                        runFullDiagnostic();
+                    }, 8000);
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                log(\`❌ Reset failed: \${error.message}\`, 'error');
+                resetStatus.innerHTML = \`<span class="error">❌ Erro: \${error.message}</span>\`;
+            }
+        }
+
         window.addEventListener('load', () => {
             log('🚀 Page loaded, starting diagnostic...', 'info');
             runFullDiagnostic();
@@ -770,6 +804,33 @@ export class WebServer {
         });
       } catch (error) {
         logger.error('Error sending message:', error);
+        return res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    });
+
+    // Force reset WhatsApp session
+    this.app.post('/api/force-reset-whatsapp', async (req, res) => {
+      try {
+        if (!this.saraBot) {
+          return res.status(400).json({
+            success: false,
+            error: 'Sara bot not initialized'
+          });
+        }
+
+        logger.info('🚨 API: Force reset WhatsApp session requested');
+        await this.saraBot.forceResetWhatsAppSession();
+
+        return res.json({
+          success: true,
+          message: 'WhatsApp session reset complete. New QR code should be available in 5-10 seconds.',
+          timestamp: new Date().toISOString()
+        });
+      } catch (error) {
+        logger.error('Error force resetting WhatsApp:', error);
         return res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error'
