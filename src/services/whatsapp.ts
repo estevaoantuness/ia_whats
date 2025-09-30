@@ -40,8 +40,9 @@ export class WhatsAppService {
           creds: state.creds,
           keys: makeCacheableSignalKeyStore(state.keys, logger as any),
         },
-        logger: undefined, // Disable Baileys internal logging to reduce noise
-        browser: ['IA WhatsApp Bot', 'Chrome', '1.0.0'],
+        logger: logger as any, // Use Winston logger for Baileys
+        printQRInTerminal: true, // Enable QR code in console
+        browser: ['Sara AI', 'Chrome', '1.0.0'],
         generateHighQualityLinkPreview: true,
         getMessage: async (key) => {
           return {
