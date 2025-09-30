@@ -465,6 +465,11 @@ export class WebServer {
       }
     });
 
+    // Sherlock Holmes Debug Page
+    this.app.get('/qr-sherlock', (req, res) => {
+      res.sendFile(path.join(__dirname, '../../qr-test.html'));
+    });
+
     // Debug endpoint - Get QR code directly
     this.app.get('/api/qr-debug', (req, res) => {
       try {
