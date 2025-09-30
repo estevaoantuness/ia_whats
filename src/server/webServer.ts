@@ -467,7 +467,225 @@ export class WebServer {
 
     // Sherlock Holmes Debug Page
     this.app.get('/qr-sherlock', (req, res) => {
-      res.sendFile(path.join(__dirname, '../../qr-test.html'));
+      res.send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Debug - Sherlock Holmes Edition</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #ffff00; border-bottom: 2px solid #ffff00; padding-bottom: 10px; }
+        h2 { color: #00ffff; margin-top: 30px; }
+        .section {
+            background: #2a2a2a;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #00ff00;
+            border-radius: 5px;
+        }
+        .error { color: #ff0000; font-weight: bold; }
+        .success { color: #00ff00; font-weight: bold; }
+        .warning { color: #ffaa00; }
+        #qrCanvas {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border: 3px solid #00ff00;
+        }
+        pre {
+            background: #0a0a0a;
+            padding: 10px;
+            overflow-x: auto;
+            border: 1px solid #333;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover { background: #00cc00; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+</head>
+<body>
+    <h1>🔍 SHERLOCK HOLMES QR CODE INVESTIGATION</h1>
+
+    <div class="section">
+        <h2>📋 STEP 1: Fetch QR Code from API</h2>
+        <div id="step1">⏳ Fetching...</div>
+    </div>
+
+    <div class="section">
+        <h2>📊 STEP 2: API Response Analysis</h2>
+        <div id="step2"></div>
+    </div>
+
+    <div class="section">
+        <h2>🎨 STEP 3: Canvas Rendering Test</h2>
+        <canvas id="qrCanvas"></canvas>
+        <div id="step3"></div>
+    </div>
+
+    <div class="section">
+        <h2>📝 STEP 4: Raw QR Code String</h2>
+        <pre id="rawQR" style="word-wrap: break-word; white-space: pre-wrap;">⏳ Loading...</pre>
+    </div>
+
+    <div class="section">
+        <h2>🧪 STEP 5: QRCode Library Test</h2>
+        <div id="step5"></div>
+    </div>
+
+    <div class="section">
+        <h2>🔄 Actions</h2>
+        <button onclick="runFullDiagnostic()">🔍 Run Full Diagnostic</button>
+        <button onclick="testSimpleQR()">🧪 Test Simple QR</button>
+        <button onclick="location.reload()">♻️ Reload Page</button>
+    </div>
+
+    <div class="section">
+        <h2>📜 Console Logs</h2>
+        <pre id="logs"></pre>
+    </div>
+
+    <script>
+        let logs = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = \`[\${timestamp}] \${type.toUpperCase()}: \${message}\`;
+            logs.push(logEntry);
+            console.log(logEntry);
+            document.getElementById('logs').textContent = logs.join('\\n');
+        }
+
+        async function runFullDiagnostic() {
+            log('🔍 Starting Sherlock Holmes Investigation...', 'info');
+
+            try {
+                log('📡 Fetching /api/qr-debug...', 'info');
+                const response = await fetch('/api/qr-debug');
+
+                if (!response.ok) {
+                    throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
+                }
+
+                const data = await response.json();
+                log('✅ API Response received', 'success');
+
+                document.getElementById('step1').innerHTML = \`
+                    <span class="success">✅ API Fetch SUCCESS</span><br>
+                    Status: \${response.status} \${response.statusText}<br>
+                    Response Time: \${Date.now()} ms
+                \`;
+
+                document.getElementById('step2').innerHTML = \`
+                    <pre>\${JSON.stringify(data, null, 2)}</pre>
+                    <br>
+                    <strong>Analysis:</strong><br>
+                    • hasQRCode: \${data.hasQRCode ? '<span class="success">✅ YES</span>' : '<span class="error">❌ NO</span>'}<br>
+                    • qrCode exists: \${data.qrCode ? '<span class="success">✅ YES</span>' : '<span class="error">❌ NO</span>'}<br>
+                    • qrCodeLength: \${data.qrCodeLength} characters<br>
+                    • isConnected: \${data.isConnected ? '<span class="success">✅ YES</span>' : '<span class="warning">⏳ NO</span>'}<br>
+                    • Timestamp: \${data.timestamp}
+                \`;
+
+                if (data.qrCode) {
+                    document.getElementById('rawQR').textContent = data.qrCode;
+                    log(\`📝 QR Code string: \${data.qrCode.substring(0, 50)}...\`, 'info');
+                } else {
+                    document.getElementById('rawQR').innerHTML = '<span class="error">❌ NO QR CODE IN RESPONSE</span>';
+                    log('❌ No QR code in API response', 'error');
+                    return;
+                }
+
+                try {
+                    log('🎨 Attempting to render QR Code to canvas...', 'info');
+
+                    const canvas = document.getElementById('qrCanvas');
+
+                    await QRCode.toCanvas(canvas, data.qrCode, {
+                        width: 400,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#ffffff'
+                        }
+                    });
+
+                    log('✅ QR Code rendered successfully!', 'success');
+                    document.getElementById('step3').innerHTML = \`
+                        <span class="success">✅ QR CODE RENDERED SUCCESSFULLY!</span><br>
+                        Canvas Width: \${canvas.width}px<br>
+                        Canvas Height: \${canvas.height}px<br>
+                        <strong>👆 YOU SHOULD SEE THE QR CODE ABOVE 👆</strong>
+                    \`;
+
+                } catch (renderError) {
+                    log(\`❌ Canvas render failed: \${renderError.message}\`, 'error');
+                    document.getElementById('step3').innerHTML = \`
+                        <span class="error">❌ CANVAS RENDER FAILED</span><br>
+                        Error: \${renderError.message}<br>
+                        Stack: <pre>\${renderError.stack}</pre>
+                    \`;
+                }
+
+                document.getElementById('step5').innerHTML = \`
+                    <strong>QRCode Library Status:</strong><br>
+                    • Loaded: \${typeof QRCode !== 'undefined' ? '<span class="success">✅ YES</span>' : '<span class="error">❌ NO</span>'}<br>
+                    • Version: \${QRCode.version || 'Unknown'}<br>
+                    • toCanvas method: \${typeof QRCode.toCanvas === 'function' ? '<span class="success">✅ Available</span>' : '<span class="error">❌ Missing</span>'}
+                \`;
+
+            } catch (error) {
+                log(\`❌ FATAL ERROR: \${error.message}\`, 'error');
+                document.getElementById('step1').innerHTML = \`
+                    <span class="error">❌ API FETCH FAILED</span><br>
+                    Error: \${error.message}<br>
+                    <pre>\${error.stack}</pre>
+                \`;
+            }
+        }
+
+        function testSimpleQR() {
+            log('🧪 Testing simple QR code generation...', 'info');
+            try {
+                const canvas = document.getElementById('qrCanvas');
+                QRCode.toCanvas(canvas, 'https://www.google.com', {
+                    width: 300
+                });
+                log('✅ Simple QR test SUCCESS', 'success');
+                alert('✅ Simple QR Code rendered! If you see it, the library works.');
+            } catch (error) {
+                log(\`❌ Simple QR test FAILED: \${error.message}\`, 'error');
+                alert('❌ QR Library is broken: ' + error.message);
+            }
+        }
+
+        window.addEventListener('load', () => {
+            log('🚀 Page loaded, starting diagnostic...', 'info');
+            runFullDiagnostic();
+        });
+
+        window.addEventListener('error', (e) => {
+            log(\`❌ Global error: \${e.message}\`, 'error');
+        });
+    </script>
+</body>
+</html>`);
     });
 
     // Debug endpoint - Get QR code directly
