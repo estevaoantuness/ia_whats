@@ -202,18 +202,30 @@ export class WebServer {
 
             <button class="refresh-btn" onclick="location.reload()">🔄 Atualizar</button>
 
-            <script>
-                QRCode.toCanvas(document.getElementById('qrcode'), '${qrCode}', {
-                    width: 300,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#ffffff'
-                    }
-                });
+            <p style="margin-top: 20px; font-size: 12px; color: #999;">
+                Debug: QR Code ativo (${qrCode.length} caracteres)<br>
+                Gerado em: ${new Date().toLocaleTimeString('pt-BR')}<br>
+                <a href="/api/qr-debug" target="_blank" style="color: #667eea;">Ver JSON Debug</a>
+            </p>
 
-                // Auto-refresh every 5 seconds
-                setTimeout(() => location.reload(), 5000);
+            <script>
+                try {
+                    QRCode.toCanvas(document.getElementById('qrcode'), '${qrCode}', {
+                        width: 300,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#ffffff'
+                        }
+                    });
+                    console.log('✅ QR Code renderizado com sucesso!');
+                } catch (error) {
+                    console.error('❌ Erro ao renderizar QR Code:', error);
+                    document.getElementById('qrcode').innerHTML = '<p style="color:red;">Erro ao renderizar QR Code</p>';
+                }
+
+                // Auto-refresh every 3 seconds (QR codes expire quickly)
+                setTimeout(() => location.reload(), 3000);
             </script>
         ` : `
             <div class="status waiting">
@@ -239,18 +251,48 @@ export class WebServer {
       try {
         const isConnected = this.saraBot?.isConnected() || false;
         const whatsappStatus = isConnected ? 'connected' : 'disconnected';
+        const qrCode = this.saraBot?.getQRCode() || null;
 
         res.json({
           status: whatsappStatus,
-          qrCode: null, // Will implement QR code later
+          qrCode: qrCode,
+          qrCodeLength: qrCode ? qrCode.length : 0,
+          qrCodeAvailable: !!qrCode,
           uptime: Math.floor(process.uptime()),
-          messageCount: 0, // Will implement message counter later
+          messageCount: 0,
           aiService: AI_SERVICE,
-          connected: isConnected
+          connected: isConnected,
+          timestamp: new Date().toISOString()
         });
       } catch (error) {
         logger.error('Error getting status:', error);
         res.status(500).json({ error: 'Internal server error' });
+      }
+    });
+
+    // Debug endpoint - Get QR code directly
+    this.app.get('/api/qr-debug', (req, res) => {
+      try {
+        const qrCode = this.saraBot?.getQRCode();
+        const isConnected = this.saraBot?.isConnected() || false;
+
+        res.json({
+          success: true,
+          qrCode: qrCode,
+          qrCodeLength: qrCode ? qrCode.length : 0,
+          hasQRCode: !!qrCode,
+          isConnected: isConnected,
+          timestamp: new Date().toISOString(),
+          message: qrCode
+            ? 'QR Code disponível'
+            : (isConnected ? 'Já conectado' : 'QR Code ainda não foi gerado')
+        });
+      } catch (error) {
+        logger.error('Error getting QR code:', error);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
       }
     });
 
