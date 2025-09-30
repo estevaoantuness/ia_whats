@@ -28,19 +28,42 @@ export class WhatsAppService {
 
   async initialize(): Promise<void> {
     try {
+      console.log(`📂 Session path: ${this.sessionPath}`);
+
       const { state, saveCreds } = await useMultiFileAuthState(this.sessionPath);
       const { version } = await fetchLatestBaileysVersion();
 
+      // Check if there's an existing session
+      const hasSession = state.creds && state.creds.me;
+      console.log(`🔐 Existing session found: ${hasSession ? 'YES' : 'NO'}`);
+
+      if (hasSession) {
+        console.log(`📱 Phone: ${state.creds.me?.id || 'unknown'}`);
+      } else {
+        console.log('📱 No session - QR Code will be generated');
+      }
+
       logger.info('Initializing WhatsApp connection...');
       logger.info(`Using Baileys version: ${version.join('.')}`);
+
+      // Create Baileys-compatible logger with trace() method
+      const baileysLogger = {
+        fatal: (msg: any, ...args: any[]) => logger.error(msg, ...args),
+        error: (msg: any, ...args: any[]) => logger.error(msg, ...args),
+        warn: (msg: any, ...args: any[]) => logger.warn(msg, ...args),
+        info: (msg: any, ...args: any[]) => logger.info(msg, ...args),
+        debug: (msg: any, ...args: any[]) => logger.debug(msg, ...args),
+        trace: (msg: any, ...args: any[]) => logger.debug(msg, ...args), // Map trace to debug
+        child: () => baileysLogger, // Return self for child logger calls
+      };
 
       this.socket = makeWASocket({
         version,
         auth: {
           creds: state.creds,
-          keys: makeCacheableSignalKeyStore(state.keys, logger as any),
+          keys: makeCacheableSignalKeyStore(state.keys, baileysLogger as any),
         },
-        logger: logger as any, // Use Winston logger for Baileys
+        logger: baileysLogger as any, // Use Baileys-compatible logger
         printQRInTerminal: true, // Enable QR code in console
         browser: ['Sara AI', 'Chrome', '1.0.0'],
         generateHighQualityLinkPreview: true,
