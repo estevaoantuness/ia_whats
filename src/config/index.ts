@@ -3,9 +3,25 @@ import { BotConfig } from '../types';
 
 dotenv.config();
 
-// Determine which AI service to use based on available API keys
-// PRIORITY: OpenAI first (if available), then Gemini as fallback
-const useGemini = !process.env.OPENAI_API_KEY && !!process.env.GEMINI_API_KEY;
+// Determine which AI service to use
+// PRIORITY:
+// 1. Explicit AI_SERVICE environment variable (gemini or openai)
+// 2. If not set, auto-detect based on available API keys (OpenAI first, then Gemini)
+const explicitService = process.env.AI_SERVICE?.toLowerCase();
+let useGemini: boolean;
+
+if (explicitService === 'gemini') {
+  useGemini = true;
+  console.log('🤖 AI_SERVICE=gemini detected - Using Gemini');
+} else if (explicitService === 'openai') {
+  useGemini = false;
+  console.log('🤖 AI_SERVICE=openai detected - Using OpenAI');
+} else {
+  // Auto-detect: OpenAI first (if available), then Gemini as fallback
+  useGemini = !process.env.OPENAI_API_KEY && !!process.env.GEMINI_API_KEY;
+  console.log(`🤖 Auto-detected: Using ${useGemini ? 'Gemini' : 'OpenAI'}`);
+}
+
 const apiKey = useGemini ? process.env.GEMINI_API_KEY : process.env.OPENAI_API_KEY;
 const model = useGemini ? (process.env.GEMINI_MODEL || 'gemini-1.5-flash') : (process.env.OPENAI_MODEL || 'gpt-4o-mini');
 
