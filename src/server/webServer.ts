@@ -1571,6 +1571,153 @@ export class WebServer {
       }
     });
 
+    // Clear session page
+    this.app.get('/clear-session', (req, res) => {
+      res.send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sara AI - Limpar Sessão</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 { color: #667eea; margin-bottom: 10px; font-size: 2em; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .warning h3 { color: #856404; margin-bottom: 10px; }
+        .warning ul { margin-left: 20px; color: #856404; }
+        .warning li { margin: 5px 0; }
+        button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px 10px;
+            transition: background 0.3s;
+        }
+        button:hover { background: #c82333; }
+        button.secondary {
+            background: #667eea;
+        }
+        button.secondary:hover { background: #5568d3; }
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: 500;
+            display: none;
+        }
+        .status.success { background: #d4edda; color: #155724; display: block; }
+        .status.error { background: #f8d7da; color: #721c24; display: block; }
+        .status.loading { background: #d1ecf1; color: #0c5460; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Limpar Sessão WhatsApp</h1>
+        <p class="subtitle">Reset completo para resolver problemas de conexão</p>
+
+        <div class="warning">
+            <h3>⚠️ ATENÇÃO - Esta ação vai:</h3>
+            <ul>
+                <li>🗑️ Deletar toda a sessão atual do WhatsApp</li>
+                <li>🔄 Desconectar qualquer conexão ativa</li>
+                <li>🆕 Gerar um QR Code/Pairing Code completamente novo</li>
+                <li>⏰ Resetar tentativas de reconexão</li>
+            </ul>
+            <br>
+            <strong>Use isso se:</strong>
+            <ul>
+                <li>✅ QR Code não está conectando após várias tentativas</li>
+                <li>✅ Pairing Code não funciona</li>
+                <li>✅ Conexão fica "carregando infinito"</li>
+                <li>✅ Você quer começar do zero</li>
+            </ul>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <button onclick="clearSession()">🧹 LIMPAR SESSÃO AGORA</button>
+        <button class="secondary" onclick="location.href='/'">🏠 Voltar para Home</button>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px;">
+            <p><strong>Depois de limpar:</strong></p>
+            <p>Acesse <a href="/pairing" style="color: #667eea;">/pairing</a> ou <a href="/qr-stable" style="color: #667eea;">/qr-stable</a> para reconectar</p>
+        </div>
+    </div>
+
+    <script>
+        async function clearSession() {
+            const statusDiv = document.getElementById('status');
+
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '🔄 Limpando sessão WhatsApp...';
+
+            try {
+                const response = await fetch('/api/force-clear-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = \`
+                        ✅ <strong>Sessão limpa com sucesso!</strong><br><br>
+                        \${data.message}<br><br>
+                        <a href="/pairing" style="color: #155724; font-weight: bold;">→ Gerar Pairing Code</a> |
+                        <a href="/qr-stable" style="color: #155724; font-weight: bold;">→ Ver QR Code</a>
+                    \`;
+                } else {
+                    throw new Error(data.error || 'Erro desconhecido');
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = \`
+                    ❌ <strong>Erro ao limpar sessão:</strong><br>
+                    \${error.message}<br><br>
+                    Tente novamente ou entre em contato com suporte.
+                \`;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>`);
+    });
+
     // Force clear WhatsApp session
     this.app.post('/api/force-clear-session', async (req, res) => {
       try {
