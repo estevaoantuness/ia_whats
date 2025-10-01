@@ -1,11 +1,12 @@
 # Stage 1: Build
 FROM node:20-slim AS builder
 
-# Install build dependencies
+# Install build dependencies (including git for npm dependencies)
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -14,8 +15,8 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
 
-# Install dependencies
-RUN npm ci --only=production=false
+# Install ALL dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Copy source code
 COPY src ./src
@@ -26,8 +27,9 @@ RUN npm run build
 # Stage 2: Production
 FROM node:20-slim
 
-# Install runtime dependencies for WhatsApp (Baileys)
+# Install runtime dependencies for WhatsApp (Baileys) + git for npm
 RUN apt-get update && apt-get install -y \
+    git \
     libgbm1 \
     libnss3 \
     libatk1.0-0 \
@@ -47,8 +49,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production
+# Install only production dependencies (omit dev dependencies)
+RUN npm ci --omit=dev
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
