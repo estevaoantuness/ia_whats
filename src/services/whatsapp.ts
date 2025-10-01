@@ -135,15 +135,42 @@ export class WhatsAppService {
     }
 
     if (connection === 'close') {
-      const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+      const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+      const isLoggedOut = statusCode === DisconnectReason.loggedOut;
+      const isQRTimeout = statusCode === 408; // QR code timeout
 
       if (lastDisconnect?.error) {
         logger.warn('Connection closed. Reason:', lastDisconnect.error);
       }
 
-      if (shouldReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
+      // If user explicitly logged out, stop trying
+      if (isLoggedOut) {
+        logger.error('User logged out. Stopping reconnection attempts.');
+        console.log('❌ WhatsApp desconectado pelo usuário. App continuará rodando mas sem WhatsApp.');
+        // DON'T exit - just stop trying to reconnect
+        return;
+      }
+
+      // For QR timeouts, keep trying forever (no limit)
+      if (isQRTimeout) {
+        console.log('⏰ QR Code expirou sem ser escaneado. Gerando novo QR...');
+        logger.info('QR timeout - generating new QR code');
+        this.reconnectAttempts = 0; // Reset counter for QR timeouts
+
+        await sleep(3000); // Wait 3 seconds before new QR
+        try {
+          await this.initialize();
+        } catch (error) {
+          logger.error('Failed to generate new QR:', error);
+        }
+        return;
+      }
+
+      // For other connection issues, use limited retries
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
         this.reconnectAttempts++;
         logger.info(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        console.log(`🔄 Tentativa ${this.reconnectAttempts}/${this.maxReconnectAttempts} de reconexão...`);
 
         await sleep(this.reconnectDelay);
         try {
@@ -152,8 +179,9 @@ export class WhatsAppService {
           logger.error('Reconnection failed:', error);
         }
       } else {
-        logger.error('Maximum reconnect attempts reached or logged out. Stopping...');
-        process.exit(1);
+        logger.error('Maximum reconnect attempts reached. Keeping app alive but WhatsApp disconnected.');
+        console.log('⚠️ Máximo de tentativas atingido. App continuará sem WhatsApp.');
+        // DON'T call process.exit(1) - keep app alive
       }
     } else if (connection === 'open') {
       console.log('\n🎉 WHATSAPP CONECTADO COM SUCESSO!');
