@@ -422,7 +422,7 @@ export class WebServer {
 
     <script>
         let qrData = null;
-        let timeLeft = 30;
+        let timeLeft = 20; // WhatsApp QR expires every ~20 seconds
         let timerInterval = null;
 
         async function loadQRCode() {
@@ -462,7 +462,7 @@ export class WebServer {
 
                     <div class="qr-container">
                         <canvas id="qrcode"></canvas>
-                        <div class="timer" id="timer">Tempo: <span id="countdown">30</span>s</div>
+                        <div class="timer" id="timer">Tempo: <span id="countdown">20</span>s</div>
                     </div>
 
                     <div class="instructions">
@@ -518,7 +518,7 @@ export class WebServer {
             // Limpar timer anterior se existir
             if (timerInterval) clearInterval(timerInterval);
 
-            timeLeft = 30; // Reset para 30 segundos
+            timeLeft = 20; // WhatsApp QR expires every ~20 seconds
             const countdownEl = document.getElementById('countdown');
             const timerEl = document.getElementById('timer');
 
@@ -527,7 +527,8 @@ export class WebServer {
                 if (countdownEl) {
                     countdownEl.textContent = timeLeft;
 
-                    if (timeLeft <= 10 && timerEl) {
+                    // Turn red in last 5 seconds
+                    if (timeLeft <= 5 && timerEl) {
                         timerEl.classList.add('warning');
                     }
                 }
@@ -1485,6 +1486,114 @@ export class WebServer {
       } catch (error) {
         logger.error('Error getting Sara stats:', error);
         res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    });
+
+    // Advanced Diagnostics - Shows detailed system info
+    this.app.get('/api/diagnostics', async (req, res) => {
+      try {
+        if (!this.saraBot) {
+          return res.status(400).json({
+            success: false,
+            error: 'Sara bot not initialized'
+          });
+        }
+
+        const connectionInfo = this.saraBot.getConnectionInfo();
+        const pairingCode = this.saraBot.getPairingCode();
+        const qrCode = this.saraBot.getQRCode();
+
+        // Read package.json for Baileys version
+        const fs = require('fs');
+        const path = require('path');
+        const packagePath = path.join(process.cwd(), 'package.json');
+        let baileysVersion = 'unknown';
+
+        try {
+          const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+          baileysVersion = packageJson.dependencies['@whiskeysockets/baileys'] || 'unknown';
+        } catch (e) {
+          logger.warn('Could not read package.json for Baileys version');
+        }
+
+        return res.json({
+          success: true,
+          diagnostics: {
+            whatsapp: {
+              connected: connectionInfo.connected,
+              user: connectionInfo.user,
+              reconnectAttempts: connectionInfo.reconnectAttempts,
+              hasQRCode: !!qrCode,
+              hasPairingCode: !!pairingCode
+            },
+            system: {
+              baileysVersion: baileysVersion,
+              nodeVersion: process.version,
+              platform: process.platform,
+              uptime: Math.floor(process.uptime()),
+              memory: {
+                heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+                heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024)
+              }
+            },
+            warnings: [
+              {
+                type: 'business-api-incompatibility',
+                severity: 'critical',
+                message: 'If you are using WhatsApp Business connected to Meta Business API Platform, Baileys WILL NOT WORK. Baileys only works with personal WhatsApp or WhatsApp Business (mobile app).',
+                recommendation: 'Use a personal WhatsApp account or WhatsApp Business (mobile app), NOT Business API'
+              },
+              {
+                type: 'baileys-version',
+                severity: baileysVersion.startsWith('6.') ? 'medium' : 'low',
+                message: `You are using Baileys ${baileysVersion}. Latest version is 7.x with important bug fixes.`,
+                recommendation: baileysVersion.startsWith('6.') ? 'Consider updating to Baileys 7.x' : 'Baileys version is up to date'
+              },
+              {
+                type: 'iphone-qr-issues',
+                severity: 'medium',
+                message: 'iPhones have known issues scanning QR codes with Baileys. Pairing code is recommended for iPhone users.',
+                recommendation: 'Use /pairing page if you have an iPhone'
+              }
+            ],
+            timestamp: new Date().toISOString()
+          }
+        });
+      } catch (error) {
+        logger.error('Error getting diagnostics:', error);
+        return res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    });
+
+    // Force clear WhatsApp session
+    this.app.post('/api/force-clear-session', async (req, res) => {
+      try {
+        if (!this.saraBot) {
+          return res.status(400).json({
+            success: false,
+            error: 'Sara bot not initialized'
+          });
+        }
+
+        logger.info('🧹 API: Force clearing WhatsApp session...');
+        console.log('🧹 API REQUEST: Force clearing WhatsApp session...');
+
+        await this.saraBot.forceResetWhatsAppSession();
+
+        return res.json({
+          success: true,
+          message: 'WhatsApp session cleared successfully. New QR code should be generated.',
+          timestamp: new Date().toISOString()
+        });
+      } catch (error) {
+        logger.error('Error clearing session:', error);
+        return res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error'
         });

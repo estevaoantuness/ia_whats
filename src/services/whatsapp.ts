@@ -93,25 +93,9 @@ export class WhatsAppService {
 
       this.setupEventHandlers(saveCreds);
 
-      // If using pairing code and not registered yet, request it
-      if (this.usePairingCode && this.pairingPhoneNumber && !state.creds.registered) {
-        console.log(`\n📱 REQUESTING PAIRING CODE for ${this.pairingPhoneNumber}...`);
-        try {
-          const code = await this.socket.requestPairingCode(this.pairingPhoneNumber);
-          this.currentPairingCode = code;
-          console.log(`\n✅ PAIRING CODE: ${code}`);
-          console.log('📱 Digite este código no WhatsApp:');
-          console.log('1. Abra WhatsApp no celular');
-          console.log('2. Vá em Configurações → Aparelhos conectados');
-          console.log('3. Toque em "Conectar um aparelho"');
-          console.log('4. Toque em "Conectar com número de telefone"');
-          console.log(`5. Digite o código: ${code}\n`);
-          logger.info(`Pairing code generated: ${code}`);
-        } catch (error) {
-          logger.error('Failed to request pairing code:', error);
-          console.error('❌ Erro ao gerar pairing code:', error);
-        }
-      }
+      // Pairing code will be requested automatically in handleConnectionUpdate
+      // when connection state becomes 'connecting' or when QR is generated
+      // (following Baileys official documentation)
 
       logger.info('WhatsApp service initialized successfully');
     } catch (error) {
@@ -145,17 +129,43 @@ export class WhatsAppService {
   private async handleConnectionUpdate(update: Partial<ConnectionState>): Promise<void> {
     const { connection, lastDisconnect, qr } = update;
 
-    if (qr) {
-      this.currentQR = qr; // Store QR code
-      console.log('\n🔗 QR CODE PARA CONECTAR WHATSAPP:');
-      console.log('\n' + qr);
-      console.log('\n📱 Escaneie este QR Code com seu WhatsApp:');
-      console.log('1. Abra WhatsApp no celular');
-      console.log('2. Vá em Menu → Aparelhos conectados');
-      console.log('3. Toque em "Conectar um aparelho"');
-      console.log('4. Escaneie o código acima\n');
-      console.log(`✅ QR Code armazenado (${qr.length} chars) - Acesse /qr no navegador AGORA!`);
-      logger.info('QR Code generated and stored. Access /qr endpoint IMMEDIATELY to scan it.');
+    // Handle QR code OR pairing code (following Baileys official documentation)
+    if (connection === 'connecting' || qr) {
+      // If pairing code mode is enabled, request pairing code
+      if (this.usePairingCode && this.pairingPhoneNumber && !this.currentPairingCode) {
+        try {
+          console.log(`\n📱 REQUESTING PAIRING CODE for ${this.pairingPhoneNumber}...`);
+          logger.info(`Requesting pairing code for ${this.pairingPhoneNumber}`);
+
+          const code = await this.socket!.requestPairingCode(this.pairingPhoneNumber);
+          this.currentPairingCode = code;
+
+          console.log(`\n✅ PAIRING CODE: ${code}`);
+          console.log('📱 Digite este código no WhatsApp:');
+          console.log('1. Abra WhatsApp no celular');
+          console.log('2. Vá em Configurações → Aparelhos conectados');
+          console.log('3. Toque em "Conectar um aparelho"');
+          console.log('4. Toque em "Conectar com número de telefone"');
+          console.log(`5. Digite o código: ${code}\n`);
+          logger.info(`Pairing code generated: ${code}`);
+        } catch (error) {
+          logger.error('Failed to request pairing code:', error);
+          console.error('❌ Erro ao gerar pairing code:', error);
+        }
+      }
+      // Otherwise, handle QR code
+      else if (qr) {
+        this.currentQR = qr; // Store QR code
+        console.log('\n🔗 QR CODE PARA CONECTAR WHATSAPP:');
+        console.log('\n' + qr);
+        console.log('\n📱 Escaneie este QR Code com seu WhatsApp:');
+        console.log('1. Abra WhatsApp no celular');
+        console.log('2. Vá em Menu → Aparelhos conectados');
+        console.log('3. Toque em "Conectar um aparelho"');
+        console.log('4. Escaneie o código acima\n');
+        console.log(`✅ QR Code armazenado (${qr.length} chars) - Acesse /qr no navegador AGORA!`);
+        logger.info('QR Code generated and stored. Access /qr endpoint IMMEDIATELY to scan it.');
+      }
     }
 
     if (connection === 'close') {
