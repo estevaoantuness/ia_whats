@@ -22,6 +22,9 @@ export class WhatsAppService {
   private sessionPath: string;
   private onMessageCallback: ((message: WhatsAppMessage) => Promise<void>) | null = null;
   private currentQR: string | null = null;
+  private currentPairingCode: string | null = null;
+  private usePairingCode: boolean = false;
+  private pairingPhoneNumber: string | null = null;
 
   constructor(sessionName: string = 'ia_whatsapp_session') {
     this.sessionPath = path.join(process.cwd(), 'data', 'auth', sessionName);
@@ -89,6 +92,27 @@ export class WhatsAppService {
       });
 
       this.setupEventHandlers(saveCreds);
+
+      // If using pairing code and not registered yet, request it
+      if (this.usePairingCode && this.pairingPhoneNumber && !state.creds.registered) {
+        console.log(`\n📱 REQUESTING PAIRING CODE for ${this.pairingPhoneNumber}...`);
+        try {
+          const code = await this.socket.requestPairingCode(this.pairingPhoneNumber);
+          this.currentPairingCode = code;
+          console.log(`\n✅ PAIRING CODE: ${code}`);
+          console.log('📱 Digite este código no WhatsApp:');
+          console.log('1. Abra WhatsApp no celular');
+          console.log('2. Vá em Configurações → Aparelhos conectados');
+          console.log('3. Toque em "Conectar um aparelho"');
+          console.log('4. Toque em "Conectar com número de telefone"');
+          console.log(`5. Digite o código: ${code}\n`);
+          logger.info(`Pairing code generated: ${code}`);
+        } catch (error) {
+          logger.error('Failed to request pairing code:', error);
+          console.error('❌ Erro ao gerar pairing code:', error);
+        }
+      }
+
       logger.info('WhatsApp service initialized successfully');
     } catch (error) {
       logger.error('Failed to initialize WhatsApp service:', error);
@@ -325,6 +349,45 @@ export class WhatsAppService {
 
   getQRCode(): string | null {
     return this.currentQR;
+  }
+
+  getPairingCode(): string | null {
+    return this.currentPairingCode;
+  }
+
+  async requestPairingCode(phoneNumber: string): Promise<string> {
+    try {
+      // Remove any formatting from phone number
+      const cleanNumber = phoneNumber.replace(/\D/g, '');
+
+      logger.info(`Requesting pairing code for ${cleanNumber}`);
+      console.log(`📱 Solicitando pairing code para ${phoneNumber}...`);
+
+      // Set flags
+      this.usePairingCode = true;
+      this.pairingPhoneNumber = cleanNumber;
+      this.currentPairingCode = null;
+      this.currentQR = null;
+
+      // Reinitialize to trigger pairing code generation
+      await this.forceResetSession();
+
+      // Wait for pairing code to be generated
+      let attempts = 0;
+      while (!this.currentPairingCode && attempts < 30) {
+        await sleep(1000);
+        attempts++;
+      }
+
+      if (!this.currentPairingCode) {
+        throw new Error('Timeout waiting for pairing code generation');
+      }
+
+      return this.currentPairingCode;
+    } catch (error) {
+      logger.error('Error requesting pairing code:', error);
+      throw error;
+    }
   }
 
   async disconnect(): Promise<void> {

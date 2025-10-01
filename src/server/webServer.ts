@@ -64,6 +64,234 @@ export class WebServer {
       });
     });
 
+    // Pairing Code Page (for iPhone)
+    this.app.get('/pairing', (req, res) => {
+      res.send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sara AI - Conectar com Código</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 { color: #667eea; margin-bottom: 10px; font-size: 2em; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
+        .input-group {
+            margin: 30px 0;
+        }
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        button:hover { background: #5568d3; }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .code-display {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        .code {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 5px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .instructions {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .instructions h3 { color: #667eea; margin-bottom: 15px; }
+        .instructions ol { margin-left: 20px; }
+        .instructions li { margin-bottom: 10px; line-height: 1.6; }
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.loading { background: #d1ecf1; color: #0c5460; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Sara AI</h1>
+        <p class="subtitle">Conectar com Código de Pareamento (Ideal para iPhone!)</p>
+
+        <div id="phoneStep">
+            <div class="input-group">
+                <label for="phoneNumber">Seu Número de WhatsApp:</label>
+                <input
+                    type="tel"
+                    id="phoneNumber"
+                    placeholder="+55 11 99999-9999"
+                    value="+55 "
+                />
+                <small style="color: #666; display: block; margin-top: 8px;">
+                    Digite com código do país (ex: +55 11 99999-9999)
+                </small>
+            </div>
+
+            <button id="generateBtn" onclick="generateCode()">
+                📱 Gerar Código de Pareamento
+            </button>
+
+            <div id="status" class="status hidden"></div>
+        </div>
+
+        <div id="codeStep" class="hidden">
+            <div class="status success">
+                ✅ Código Gerado com Sucesso!
+            </div>
+
+            <div class="code-display">
+                <p style="color: #666; margin-bottom: 10px;">SEU CÓDIGO:</p>
+                <div class="code" id="codeDisplay">----</div>
+                <p style="color: #666; font-size: 12px;">Válido por 60 segundos</p>
+            </div>
+
+            <div class="instructions">
+                <h3>Como Conectar:</h3>
+                <ol>
+                    <li>Abra <strong>WhatsApp</strong> no seu iPhone</li>
+                    <li>Vá em <strong>Configurações</strong> (canto inferior direito)</li>
+                    <li>Toque em <strong>Aparelhos Conectados</strong></li>
+                    <li>Toque em <strong>Conectar um Aparelho</strong></li>
+                    <li>Toque em <strong>"Conectar com número de telefone"</strong></li>
+                    <li><strong>Digite o código acima</strong></li>
+                    <li>Aguarde a confirmação! ✅</li>
+                </ol>
+            </div>
+
+            <button onclick="location.reload()">🔄 Gerar Novo Código</button>
+        </div>
+    </div>
+
+    <script>
+        async function generateCode() {
+            const phoneInput = document.getElementById('phoneNumber');
+            const generateBtn = document.getElementById('generateBtn');
+            const status = document.getElementById('status');
+            const phoneStep = document.getElementById('phoneStep');
+            const codeStep = document.getElementById('codeStep');
+            const codeDisplay = document.getElementById('codeDisplay');
+
+            const phoneNumber = phoneInput.value.trim();
+
+            // Validar número
+            if (!phoneNumber || phoneNumber.length < 10) {
+                status.className = 'status error';
+                status.textContent = '❌ Digite um número válido!';
+                status.classList.remove('hidden');
+                return;
+            }
+
+            // Desabilitar botão
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Gerando código...';
+
+            status.className = 'status loading';
+            status.textContent = '🔄 Solicitando código de pareamento...';
+            status.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/request-pairing-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ phoneNumber })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.pairingCode) {
+                    // Mostrar código
+                    codeDisplay.textContent = data.pairingCode;
+                    phoneStep.classList.add('hidden');
+                    codeStep.classList.remove('hidden');
+
+                    console.log('✅ Código gerado:', data.pairingCode);
+                } else {
+                    throw new Error(data.error || 'Erro ao gerar código');
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = '❌ Erro: ' + error.message;
+                generateBtn.disabled = false;
+                generateBtn.textContent = '📱 Gerar Código de Pareamento';
+                console.error('Erro:', error);
+            }
+        }
+
+        // Permitir Enter para enviar
+        document.getElementById('phoneNumber').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateCode();
+            }
+        });
+    </script>
+</body>
+</html>`);
+    });
+
     // QR Code page - STABLE (no blinking!)
     this.app.get('/qr-stable', (req, res) => {
       res.send(`<!DOCTYPE html>
@@ -1064,6 +1292,73 @@ export class WebServer {
         });
       } catch (error) {
         logger.error('Error force resetting WhatsApp:', error);
+        return res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    });
+
+    // Request pairing code
+    this.app.post('/api/request-pairing-code', async (req, res) => {
+      try {
+        const { phoneNumber } = req.body;
+
+        if (!phoneNumber) {
+          return res.status(400).json({
+            success: false,
+            error: 'Phone number is required'
+          });
+        }
+
+        if (!this.saraBot) {
+          return res.status(400).json({
+            success: false,
+            error: 'Sara bot not initialized'
+          });
+        }
+
+        logger.info(`📱 API: Requesting pairing code for ${phoneNumber}`);
+        const code = await this.saraBot.requestPairingCode(phoneNumber);
+
+        return res.json({
+          success: true,
+          pairingCode: code,
+          phoneNumber: phoneNumber,
+          message: 'Pairing code generated successfully',
+          timestamp: new Date().toISOString()
+        });
+      } catch (error) {
+        logger.error('Error requesting pairing code:', error);
+        return res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    });
+
+    // Get pairing code status
+    this.app.get('/api/pairing-code-status', async (req, res) => {
+      try {
+        if (!this.saraBot) {
+          return res.status(400).json({
+            success: false,
+            error: 'Sara bot not initialized'
+          });
+        }
+
+        const pairingCode = this.saraBot.getPairingCode();
+        const isConnected = this.saraBot.isConnected();
+
+        return res.json({
+          success: true,
+          pairingCode: pairingCode,
+          isConnected: isConnected,
+          hasPairingCode: !!pairingCode,
+          timestamp: new Date().toISOString()
+        });
+      } catch (error) {
+        logger.error('Error getting pairing code status:', error);
         return res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error'

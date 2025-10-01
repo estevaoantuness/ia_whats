@@ -251,6 +251,15 @@ export class SaraBot {
     await this.whatsappService.forceResetSession();
     logger.info('Admin: WhatsApp session reset complete');
   }
+
+  async requestPairingCode(phoneNumber: string): Promise<string> {
+    logger.info(`Requesting pairing code for ${phoneNumber}`);
+    return await this.whatsappService.requestPairingCode(phoneNumber);
+  }
+
+  getPairingCode(): string | null {
+    return this.whatsappService.getPairingCode();
+  }
 }
 
 // Factory function for easy initialization
