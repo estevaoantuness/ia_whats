@@ -226,7 +226,21 @@ export class SaraMessageHandler {
   private async sendMessage(userId: string, message: string): Promise<void> {
     try {
       if (this.whatsappService.isConnected()) {
+        // 1. Show "typing..." indicator
+        await this.whatsappService.setPresence('composing');
+
+        // 2. Calculate natural typing delay based on message length
+        const typingDelay = TimingSimulation.calculateTypingDelay(message.length);
+        logger.debug(`Simulating typing for ${typingDelay}ms before sending message`);
+
+        // 3. Wait (simulate human typing time)
+        await new Promise(resolve => setTimeout(resolve, typingDelay));
+
+        // 4. Send the message
         await this.whatsappService.sendMessage(userId, message);
+
+        // 5. Set presence back to paused/available
+        await this.whatsappService.setPresence('paused');
       } else {
         // For web users, we'll log the message (it will be handled differently in web interface)
         logger.info(`Web message for ${userId}:`, { message });
