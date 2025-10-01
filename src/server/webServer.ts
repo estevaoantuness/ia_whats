@@ -29,21 +29,47 @@ export class WebServer {
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sara AI - Status</title>
+  <title>Sara AI - Conectar WhatsApp</title>
   <meta charset="UTF-8">
   <style>
     body { font-family: Arial; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
     h1 { font-size: 3em; margin-bottom: 20px; }
-    a { color: white; font-size: 1.2em; text-decoration: none; background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 10px; display: inline-block; margin: 10px; }
-    a:hover { background: rgba(255,255,255,0.3); }
+    .subtitle { font-size: 1.3em; margin-bottom: 40px; opacity: 0.9; }
+    .options { display: flex; justify-content: center; gap: 30px; margin: 40px 0; flex-wrap: wrap; }
+    .option-card { background: rgba(255,255,255,0.15); padding: 30px; border-radius: 15px; max-width: 300px; transition: all 0.3s; }
+    .option-card:hover { background: rgba(255,255,255,0.25); transform: translateY(-5px); }
+    .option-card h2 { margin: 10px 0; font-size: 1.5em; }
+    .option-card p { margin: 15px 0; font-size: 0.95em; opacity: 0.9; }
+    .btn { color: white; font-size: 1.1em; text-decoration: none; background: rgba(255,255,255,0.3); padding: 12px 25px; border-radius: 10px; display: inline-block; margin-top: 10px; font-weight: bold; }
+    .btn:hover { background: rgba(255,255,255,0.4); }
+    .footer { margin-top: 50px; }
+    .footer a { color: white; font-size: 1em; text-decoration: none; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; display: inline-block; margin: 5px; }
+    .footer a:hover { background: rgba(255,255,255,0.2); }
   </style>
 </head>
 <body>
   <h1>🌸 Sara AI</h1>
-  <p>Assistente de Produtividade - Online!</p>
-  <br>
-  <a href="/qr">📱 Conectar WhatsApp</a>
-  <a href="/health">💚 Status</a>
+  <p class="subtitle">Assistente de Produtividade - Escolha como conectar</p>
+
+  <div class="options">
+    <div class="option-card">
+      <h2>📱 QR Code</h2>
+      <p><strong>Recomendado para Android</strong></p>
+      <p>Escaneie o código QR diretamente do seu celular</p>
+      <a href="/qr-stable" class="btn">Conectar com QR Code</a>
+    </div>
+
+    <div class="option-card">
+      <h2>🔢 Código de Pareamento</h2>
+      <p><strong>Ideal para iPhone</strong></p>
+      <p>Digite um código de 8 dígitos no WhatsApp</p>
+      <a href="/pairing" class="btn">Conectar com Código</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="/health">💚 Status do Sistema</a>
+  </div>
 </body>
 </html>
       `);
@@ -221,6 +247,16 @@ export class WebServer {
             </div>
 
             <button onclick="location.reload()">🔄 Gerar Novo Código</button>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Outras opções:</p>
+            <a href="/qr-stable" style="display: inline-block; color: #667eea; text-decoration: none; padding: 10px 20px; border: 2px solid #667eea; border-radius: 8px; margin: 5px; transition: all 0.3s;" onmouseover="this.style.background='#667eea'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#667eea';">
+                📱 Tentar QR Code
+            </a>
+            <a href="/" style="display: inline-block; color: #666; text-decoration: none; padding: 10px 20px; border: 2px solid #ddd; border-radius: 8px; margin: 5px; transition: all 0.3s;" onmouseover="this.style.background='#ddd';" onmouseout="this.style.background='transparent';">
+                🏠 Página Inicial
+            </a>
         </div>
     </div>
 
@@ -441,6 +477,7 @@ export class WebServer {
                     </div>
 
                     <button class="refresh-btn" onclick="loadQRCode()">🔄 Gerar Novo QR</button>
+                    <a href="/pairing" class="refresh-btn" style="text-decoration: none; display: inline-block;">🔢 Usar Código (iPhone)</a>
 
                     <p class="debug">
                         QR: \${data.qrCodeLength} caracteres<br>
