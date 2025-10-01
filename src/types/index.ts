@@ -53,6 +53,11 @@ export interface ConversationContext {
     timestamp: number;
   }>;
   lastActivity: number;
+  metadata?: {
+    userName?: string;
+    onboardingStep?: string;
+    tone?: 'direct' | 'warm';
+  };
 }
 
 export interface RateLimitInfo {

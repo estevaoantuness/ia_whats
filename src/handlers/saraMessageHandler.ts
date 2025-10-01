@@ -118,6 +118,15 @@ export class SaraMessageHandler {
         return;
       }
 
+      // Check for overwhelm patterns before sending check-in
+      const overwhelmCheck = await this.detectOverwhelm(userId);
+      if (overwhelmCheck.isOverwhelmed && mode !== 'weekly_report') {
+        // Send supportive adjustment message instead of regular check-in
+        await this.whatsappService.sendMessage(userId, overwhelmCheck.message);
+        logger.info(`Overwhelm detected for user ${userId}, sent adjustment message`);
+        return;
+      }
+
       let message: string;
 
       if (mode === 'weekly_report') {
@@ -131,6 +140,70 @@ export class SaraMessageHandler {
 
     } catch (error) {
       logger.error(`Error sending scheduled ${mode}:`, error);
+    }
+  }
+
+  private async detectOverwhelm(userId: string): Promise<{ isOverwhelmed: boolean; message: string }> {
+    try {
+      // Check last 5 days of activity
+      const analytics = await this.saraContext.getRecentAnalytics(userId, 5);
+
+      if (analytics.length < 2) {
+        return { isOverwhelmed: false, message: '' };
+      }
+
+      // Pattern 1: 2+ consecutive days with 0/3 (user is trying but failing)
+      let consecutiveZeros = 0;
+      for (let i = analytics.length - 1; i >= Math.max(0, analytics.length - 3); i--) {
+        const day = analytics[i];
+        if (day.goalsCompleted === 0 && day.goalsSet > 0) {
+          consecutiveZeros++;
+        } else {
+          break;
+        }
+      }
+
+      if (consecutiveZeros >= 2) {
+        const messages = [
+          'Opa, vi que tá difícil bater as metas. Quer pausar uns dias? Ou a gente reduz pra 1 meta só?\n\nResponde: FÉRIAS 3 (pra pausar) ou "1 meta só"',
+          'Tá pesado, né? Sem pressão. Quer dar um tempo ou simplificar pra 1 meta por dia?\n\nComandos: FÉRIAS X ou "reduzir metas"',
+          'Percebi que tá complicado. Tudo bem! Quer pausar ou tentar com menos metas?\n\nDica: HOJE NÃO (só hoje) ou FÉRIAS 5 (vários dias)'
+        ];
+        return {
+          isOverwhelmed: true,
+          message: messages[Math.floor(Math.random() * messages.length)]
+        };
+      }
+
+      // Pattern 2: 3+ days without any response to check-ins (user is ignoring)
+      let daysWithoutResponse = 0;
+      for (let i = analytics.length - 1; i >= Math.max(0, analytics.length - 4); i--) {
+        const day = analytics[i];
+        const hasAnyResponse = day.checkinMorningResponded || day.checkinNoonResponded || day.checkinEveningResponded;
+        if (!hasAnyResponse) {
+          daysWithoutResponse++;
+        } else {
+          break;
+        }
+      }
+
+      if (daysWithoutResponse >= 3) {
+        const messages = [
+          'Sumiu! 😅 Tá tudo bem? Se tá corrido, posso pausar ou mudar frequência.\n\nComandos úteis: FÉRIAS X, HORÁRIO, TOM DIRETO',
+          'Faz tempo que não conversa! Quer ajustar alguma coisa? Pausar, mudar horário?\n\nExemplo: FÉRIAS 7 ou HORÁRIO 10:00',
+          'Oi! Parece que os horários não tão bons. Quer mudar ou dar uma pausa?\n\nTenta: PAUSAR 48 (2 dias) ou HORÁRIO novo'
+        ];
+        return {
+          isOverwhelmed: true,
+          message: messages[Math.floor(Math.random() * messages.length)]
+        };
+      }
+
+      return { isOverwhelmed: false, message: '' };
+
+    } catch (error) {
+      logger.error('Error detecting overwhelm:', error);
+      return { isOverwhelmed: false, message: '' };
     }
   }
 
@@ -349,6 +422,49 @@ export class SaraMessageHandler {
         );
         return true;
       }
+    }
+
+    // FÉRIAS command (1-14 days)
+    if (text.startsWith('FÉRIAS ') || text.startsWith('FERIAS ')) {
+      const daysStr = text.replace('FÉRIAS ', '').replace('FERIAS ', '');
+      const days = parseInt(daysStr);
+      if (days > 0 && days <= 14) {
+        const hours = days * 24;
+        await this.saraContext.pauseUser(message.from, hours);
+        await this.whatsappService.sendMessage(
+          message.from,
+          `Aproveita as férias! 🏖️ Vou voltar em ${days} dia${days > 1 ? 's' : ''}. Relaxa e se cuida! ✨`
+        );
+        return true;
+      } else {
+        await this.whatsappService.sendMessage(
+          message.from,
+          'FÉRIAS aceita de 1 a 14 dias. Exemplo: FÉRIAS 7'
+        );
+        return true;
+      }
+    }
+
+    // HOJE NÃO / HOJE TÁ FODA command (skip today's check-ins)
+    if (text === 'HOJE NÃO' || text === 'HOJE NAO' || text === 'HOJE TÁ FODA' || text === 'HOJE TA FODA') {
+      // Pause for rest of the day (calculate hours until midnight)
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const hoursUntilMidnight = Math.ceil((midnight.getTime() - now.getTime()) / (1000 * 60 * 60));
+
+      await this.saraContext.pauseUser(message.from, hoursUntilMidnight);
+
+      const responses = [
+        'Beleza! Amanhã a gente volta 👍',
+        'Tranquilo! Descansa hoje, amanhã recomeça',
+        'Entendi. Amanhã converso com você de novo!',
+        'Tá valendo! Amanhã é outro dia 🌅'
+      ];
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+      await this.whatsappService.sendMessage(message.from, randomResponse);
+      return true;
     }
 
     // SILENCIAR FDS command

@@ -296,15 +296,67 @@ export class MessageTemplateService {
   // Helper methods for special cases
   getOnboardingMessage(step: string, name?: string): string {
     const messages = {
-      welcome: `Oi! Eu sou a Sara, sua assistente de produtividade pessoal. Vou te ajudar a acompanhar suas metas diárias de forma leve e sem pressão. Para começarmos, como você gostaria que eu te chamasse?`,
+      welcome: `Oi! Eu sou a Sara 🌸
 
-      name: (name: string) => `Obrigada, ${name}! Que frequência de check-ins funciona melhor para você?\n\n1️⃣ **Uma vez por dia** (só de manhã)\n2️⃣ **Duas vezes por dia** (manhã + tarde/noite)\n\nResponda 1 ou 2.`,
+Minha missão: te ajudar a bater 1-3 MICRO-METAS por dia.
 
-      frequency: `Perfeito! Agora me conta: que horários funcionam melhor para você?\n\nExemplo: "08:30 e 18:30" ou só "09:00" se escolheu uma vez por dia.`,
+**Por quê micro-metas?**
+• 3 coisinhas pequenas > 1 objetivo gigante que trava
+• Você sente progresso TODO dia (não só no fim do mês)
+• Sem pressão, sem culpa, sem burnout
 
-      times: `Ótimo! Por último: tem alguma data importante que você quer que eu lembre?\n\nPode ser aniversário, conta para pagar, compromisso... O que vier na mente.\n\nExemplo: "aniv João 15/10, conta luz dia 05"\n\nOu escreva "nenhuma" se preferir adicionar depois.`,
+**Como funciona?**
+Eu dou um toque de manhã/tarde perguntando suas 1-3 metas. Você responde o placar (0/3, 1/3, 2/3, 3/3). Só isso.
 
-      completed: (name: string) => `Pronto, ${name}! 🎉\n\nEstamos conectadas! Vou te ajudar a manter o foco no que importa, sempre com gentileza e sem culpa. Se precisar pausar ou ajustar algo, é só avisar.\n\nSua primeira meta chega amanhã de manhã. Estou ansiosa para começarmos! ✨`
+Pra começar: como você quer que eu te chame?`,
+
+      name: (name: string) => `Prazer, ${name}!
+
+Agora: que frequência de check-ins funciona melhor pra você?
+
+1️⃣ **Uma vez por dia** (só de manhã)
+2️⃣ **Duas vezes por dia** (manhã + tarde/noite)
+
+Responda 1 ou 2.`,
+
+      frequency: `Perfeito!
+
+Que horários funcionam melhor pra você?
+
+**Exemplos:**
+• "08:30 e 18:30" (se escolheu 2x/dia)
+• "09:00" (se escolheu 1x/dia)
+
+Me manda seus horários:`,
+
+      times: `Ótimo!
+
+Última coisa: tem alguma data importante que você quer que eu lembre?
+
+**Pode ser:**
+• Aniversários
+• Contas pra pagar
+• Compromissos importantes
+
+**Exemplo:** "aniv João 15/10, conta luz dia 05"
+
+Ou escreva "nenhuma" se preferir adicionar depois.`,
+
+      completed: (name: string) => `Pronto, ${name}! 🎉
+
+Estamos conectadas! Amanhã de manhã eu mando a primeira mensagem perguntando suas 1-3 metas do dia.
+
+**Lembretes:**
+• Não precisa ser perfeito - 1/3 já é vitória
+• Se tiver dia ruim (0/3), sem culpa! Amanhã recomeça
+• Pode pausar ou ajustar a qualquer momento
+
+**Comandos úteis:**
+• PAUSAR X - pausa por X horas
+• TOM DIRETO/CALOROSO - muda meu estilo
+• HELP - mostra todos os comandos
+
+Vamos nessa! ✨`
     };
 
     return messages[step as keyof typeof messages] as string || messages.welcome;
@@ -313,16 +365,22 @@ export class MessageTemplateService {
   getSaraCommands(): string {
     return `**📱 Comandos da Sara:**
 
+**⏸️ Pausar:**
 • **PAUSAR X** - Pauso por X horas (ex: PAUSAR 4)
+• **FÉRIAS X** - Pauso por X dias, 1-14 (ex: FÉRIAS 7)
+• **HOJE NÃO** - Pulo só hoje, volto amanhã
+
+**⚙️ Configurar:**
 • **SILENCIAR FDS** - Não envio nada nos fins de semana
 • **HORÁRIO hh:mm** - Mudo horário do check-in
 • **TOM DIRETO** ou **TOM CALOROSO** - Ajusto meu jeito
 • **MEIO-DIA ON/OFF** - Ligo/desligo check-in do meio-dia
 
-**💡 Dicas:**
-• Posso mandar 1-3 metas por dia
-• Responda com números: 0/3, 1/3, 2/3, 3/3
-• Para aprendizados, só uma palavra vale!
+**💡 Como funciona:**
+• Mando 1-3 metas por dia (quanto menos, melhor!)
+• Você responde: 0/3, 1/3, 2/3 ou 3/3
+• Sem culpa se 0/3 - amanhã recomeça
+• 1/3 já é vitória! 🎉
 
 Qualquer dúvida, é só chamar! 😊`;
   }
