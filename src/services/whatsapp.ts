@@ -131,7 +131,21 @@ export class WhatsAppService {
 
     // Handle QR code OR pairing code (following Baileys official documentation)
     if (connection === 'connecting' || qr) {
-      // If pairing code mode is enabled, request pairing code
+      // FIRST: Always handle QR code if present (Baileys generates it automatically)
+      if (qr) {
+        this.currentQR = qr; // Store QR code
+        console.log('\n🔗 QR CODE PARA CONECTAR WHATSAPP:');
+        console.log('\n' + qr);
+        console.log('\n📱 Escaneie este QR Code com seu WhatsApp:');
+        console.log('1. Abra WhatsApp no celular');
+        console.log('2. Vá em Menu → Aparelhos conectados');
+        console.log('3. Toque em "Conectar um aparelho"');
+        console.log('4. Escaneie o código acima\n');
+        console.log(`✅ QR Code armazenado (${qr.length} chars) - Acesse /qr no navegador AGORA!`);
+        logger.info('QR Code generated and stored. Access /qr endpoint IMMEDIATELY to scan it.');
+      }
+
+      // SECOND: If pairing code mode is explicitly enabled, generate pairing code
       if (this.usePairingCode && this.pairingPhoneNumber && !this.currentPairingCode) {
         try {
           console.log(`\n📱 REQUESTING PAIRING CODE for ${this.pairingPhoneNumber}...`);
@@ -152,19 +166,6 @@ export class WhatsAppService {
           logger.error('Failed to request pairing code:', error);
           console.error('❌ Erro ao gerar pairing code:', error);
         }
-      }
-      // Otherwise, handle QR code
-      else if (qr) {
-        this.currentQR = qr; // Store QR code
-        console.log('\n🔗 QR CODE PARA CONECTAR WHATSAPP:');
-        console.log('\n' + qr);
-        console.log('\n📱 Escaneie este QR Code com seu WhatsApp:');
-        console.log('1. Abra WhatsApp no celular');
-        console.log('2. Vá em Menu → Aparelhos conectados');
-        console.log('3. Toque em "Conectar um aparelho"');
-        console.log('4. Escaneie o código acima\n');
-        console.log(`✅ QR Code armazenado (${qr.length} chars) - Acesse /qr no navegador AGORA!`);
-        logger.info('QR Code generated and stored. Access /qr endpoint IMMEDIATELY to scan it.');
       }
     }
 
