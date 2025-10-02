@@ -17,6 +17,7 @@ export class SaraMessageHandler {
   private templates: MessageTemplateService;
   private openaiService: AIService;
   private config: BotConfig;
+  private lastResponse: Map<string, string> = new Map(); // Store last response per user for web chat
 
   constructor(
     whatsappService: WhatsAppService,
@@ -225,6 +226,9 @@ export class SaraMessageHandler {
 
   private async sendMessage(userId: string, message: string): Promise<void> {
     try {
+      // Store response for web users (will be retrieved by processMessage)
+      this.lastResponse.set(userId, message);
+
       if (this.whatsappService.isConnected()) {
         // 1. Show "typing..." indicator
         await this.whatsappService.setPresence('composing');
@@ -252,6 +256,14 @@ export class SaraMessageHandler {
       // Store as system message as fallback
       await this.saraContext.addSystemMessage(userId, message);
     }
+  }
+
+  // Get last response for web users
+  getLastResponse(userId: string): string | undefined {
+    const response = this.lastResponse.get(userId);
+    // Clear after retrieval to prevent stale responses
+    this.lastResponse.delete(userId);
+    return response;
   }
 
   private async handleOnboarding(message: WhatsAppMessage): Promise<void> {

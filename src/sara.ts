@@ -150,7 +150,16 @@ export class SaraBot {
 
     try {
       await this.messageHandler.handleMessage(whatsappMessage);
-      return 'Mensagem processada com sucesso! A Sara está processando sua mensagem...';
+
+      // Get the actual Sara response that was generated
+      const response = this.messageHandler.getLastResponse(userId);
+
+      if (response) {
+        return response;
+      } else {
+        // Fallback if no response was captured
+        return 'Mensagem processada com sucesso! A Sara está processando sua mensagem...';
+      }
     } catch (error) {
       logger.error('Error processing message from web:', error);
       return 'Erro ao processar mensagem. Tente novamente.';
