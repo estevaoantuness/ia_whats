@@ -1718,6 +1718,212 @@ export class WebServer {
 </html>`);
     });
 
+    // Web Chat Interface (offline/without WhatsApp)
+    this.app.get('/chat', (req, res) => {
+      res.send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sara AI - Chat Offline</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+        }
+        .chat-header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        .chat-header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        .message.user {
+            background: #667eea;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .message.sara {
+            background: #f0f0f0;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .message.typing {
+            background: #f0f0f0;
+            color: #999;
+            align-self: flex-start;
+            font-style: italic;
+        }
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 1em;
+            outline: none;
+        }
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+        .chat-input button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .chat-input button:hover {
+            transform: scale(1.05);
+        }
+        .chat-input button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🌸 Sara AI - Chat Offline</h1>
+            <p>Converse sem WhatsApp • Modo de Teste</p>
+        </div>
+
+        <div class="chat-messages" id="messages">
+            <div class="message sara">
+                Oi! Eu sou a Sara 🌸<br><br>
+                Este é o modo offline - você pode testar sem WhatsApp!<br><br>
+                Como posso te ajudar hoje?
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Digite sua mensagem..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()" id="sendBtn">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const userId = 'web-' + Math.random().toString(36).substr(2, 9);
+
+        function addMessage(text, type) {
+            const div = document.createElement('div');
+            div.className = \`message \${type}\`;
+            div.innerHTML = text.replace(/\\n/g, '<br>');
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.className = 'message typing';
+            div.id = 'typing-indicator';
+            div.textContent = 'Sara está digitando...';
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typing = document.getElementById('typing-indicator');
+            if (typing) typing.remove();
+        }
+
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            // Add user message
+            addMessage(text, 'user');
+            messageInput.value = '';
+            sendBtn.disabled = true;
+
+            // Show typing indicator
+            showTyping();
+
+            try {
+                const response = await fetch('/api/sara-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, userId: userId })
+                });
+
+                const data = await response.json();
+
+                hideTyping();
+
+                if (data.success) {
+                    addMessage(data.response, 'sara');
+                } else {
+                    addMessage('Erro: ' + (data.error || 'Erro desconhecido'), 'sara');
+                }
+            } catch (error) {
+                hideTyping();
+                addMessage('Erro de conexão. Tente novamente.', 'sara');
+                console.error('Error:', error);
+            } finally {
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Focus on input when page loads
+        messageInput.focus();
+    </script>
+</body>
+</html>`);
+    });
+
     // Force clear WhatsApp session
     this.app.post('/api/force-clear-session', async (req, res) => {
       try {
