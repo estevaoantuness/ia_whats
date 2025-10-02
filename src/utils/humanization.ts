@@ -5,25 +5,61 @@
  * with authentic Brazilian Portuguese patterns and behaviors.
  */
 
-// Brazilian Portuguese Colloquialisms
+// Brazilian Portuguese Colloquialisms (técnicas Alecrim + contexto Sara)
 export const BrazilianColloquialisms = {
   // Filler words and expressions
-  fillers: ['né', 'ó', 'então', 'tipo', 'pô', 'cara', 'mano', 'bora', 'beleza'],
+  fillers: ['né', 'ó', 'então', 'tipo', 'pô', 'bora', 'beleza', 'sabe'],
 
   // Greetings (varied)
-  greetings: ['oi', 'e aí', 'opa', 'fala', 'olá', 'hey', 'salve'],
+  greetings: ['oi', 'e aí', 'opa', 'fala', 'olá', 'hey'],
 
-  // Affirmations
-  affirmations: ['boa', 'show', 'massa', 'legal', 'bacana', 'demais', 'top', 'valeu', 'beleza', 'tranquilo'],
+  // Affirmations (técnica Alecrim: variações de "ok", "entendo", "ótimo")
+  affirmations: ['boa', 'show', 'massa', 'legal', 'bacana', 'demais', 'top', 'valeu', 'beleza', 'tranquilo', 'firmeza', 'de boa', 'sussa'],
+
+  // Expressões regionais substitutas (técnica Alecrim)
+  regionalExpressions: [
+    { formal: 'Ok', casual: 'Beleza' },
+    { formal: 'Entendo', casual: 'Saquei' },
+    { formal: 'Perfeito', casual: 'Show' },
+    { formal: 'Ótimo', casual: 'Massa' },
+    { formal: 'Legal', casual: 'Bacana' },
+    { formal: 'Concordo', casual: 'Isso aí' },
+    { formal: 'Sim', casual: 'Sim sim' },
+    { formal: 'Claro', casual: 'Com certeza' },
+    { formal: 'Vamos lá', casual: 'Bora lá' },
+    { formal: 'Aguarde', casual: 'Espera aí' },
+    { formal: 'Um momento', casual: 'Só um segundo' },
+    { formal: 'Compreendo', casual: 'Entendi' }
+  ],
 
   // Transitions
   transitions: ['então', 'daí', 'aí', 'tipo assim', 'olha', 'ó', 'bom'],
 
-  // Encouragement
-  encouragement: ['bora', 'vai lá', 'manda ver', 'arrasa', 'você consegue', 'confia'],
+  // Encouragement (contexto Sara: produtividade)
+  encouragement: ['bora', 'vai lá', 'manda ver', 'você consegue', 'confia', 'tu dá conta', 'segue o baile'],
 
   // Empathy expressions
-  empathy: ['entendo', 'te entendo', 'imagino', 'compreendo', 'saquei', 'tá', 'uhum'],
+  empathy: ['entendo', 'te entendo', 'imagino', 'compreendo', 'saquei', 'tá', 'uhum', 'sei como é'],
+
+  // Conectores naturais (técnica Alecrim)
+  naturalConnectors: ['Ó,', 'Olha,', 'Então,', 'Tipo assim,', 'É que', 'Pois é,', 'Veja bem,', 'Sabe,'],
+
+  // Autocorreções (técnica Alecrim - ocasionais)
+  selfCorrections: [
+    'quer dizer',
+    'melhor dizendo',
+    'ou melhor',
+    'na verdade',
+    'opa, deixa eu reformular'
+  ],
+
+  // Pausas pensativas (técnica Alecrim)
+  thinkingPauses: [
+    'Deixa eu ver...',
+    'Espera aí...',
+    'Hmm...',
+    'Peraí...'
+  ],
 
   // Diminutives (makes things sound friendlier)
   diminutives: {
@@ -505,7 +541,7 @@ export class MessageSequencer {
   }
 }
 
-// Brazilian name variations (inspired by ia_alecrim personality-mateus)
+// Brazilian name variations (técnica do ia_alecrim adaptada para Sara)
 export class BrazilianNameVariations {
   private static lastUsedType: Map<string, 'full' | 'diminutive' | 'generic'> = new Map();
 
@@ -514,8 +550,24 @@ export class BrazilianNameVariations {
    */
   static getDiminutive(name: string): string {
     const specificDiminutives: { [key: string]: string[] } = {
+      // Nomes femininos
       'ana': ['Aninha', 'Anita'],
       'maria': ['Mari', 'Mariazinha'],
+      'juliana': ['Ju', 'Juju', 'Julinha'],
+      'amanda': ['Amandinha', 'Manda'],
+      'beatriz': ['Bia', 'Bea'],
+      'fernanda': ['Fê', 'Nanda', 'Fernandinha'],
+      'patricia': ['Pati', 'Patrícia'],
+      'camila': ['Cami', 'Camilinha'],
+      'carolina': ['Carol', 'Carolzinha'],
+      'gabriela': ['Gabi', 'Gabizinha'],
+      'mariana': ['Mari', 'Marianinha'],
+      'larissa': ['Lari', 'Larissinha'],
+      'jessica': ['Jessi', 'Jé'],
+      'bianca': ['Bi', 'Biazinha'],
+      'isabela': ['Isa', 'Bela', 'Isinha'],
+
+      // Nomes masculinos
       'joão': ['Joãozinho', 'Jão'],
       'jose': ['Zé', 'Zezinho'],
       'pedro': ['Pedrinho', 'Pedrão'],
@@ -526,12 +578,16 @@ export class BrazilianNameVariations {
       'paulo': ['Paulinho', 'Paulão'],
       'ricardo': ['Ricardinho', 'Cadú'],
       'fernando': ['Fernandinho', 'Nando'],
-      'juliana': ['Ju', 'Juju'],
-      'amanda': ['Amandinha', 'Manda'],
-      'beatriz': ['Bia', 'Bea'],
       'rodrigo': ['Digão', 'Digo'],
       'leonardo': ['Leo', 'Leozinho'],
-      'marcelo': ['Marcelinho', 'Celo']
+      'marcelo': ['Marcelinho', 'Celo'],
+      'felipe': ['Lipe', 'Fê', 'Felipão'],
+      'bruno': ['Bruninho', 'Brunão'],
+      'andre': ['Dede', 'Andrezinho'],
+      'matheus': ['Matheuzinho', 'Theus'],
+      'gustavo': ['Guga', 'Gustavinho'],
+      'thiago': ['Thiaguinho', 'Thi'],
+      'vinicius': ['Vini', 'Vinição']
     };
 
     const lowerName = name.toLowerCase();
@@ -617,7 +673,69 @@ export class BrazilianNameVariations {
   }
 }
 
-// Export helper function for easy integration
+// Aplicar expressões regionais brasileiras (técnica Alecrim)
+export class RegionalExpressionApplier {
+  /**
+   * Substitui expressões formais por casuais (25% de chance)
+   */
+  static applyRegionalExpressions(message: string): string {
+    // 25% de chance de aplicar
+    if (Math.random() > 0.25) return message;
+
+    let modified = message;
+
+    // Escolhe 1-2 substituições aleatórias
+    const shuffled = [...BrazilianColloquialisms.regionalExpressions].sort(() => Math.random() - 0.5);
+    const toApply = shuffled.slice(0, Math.random() < 0.5 ? 1 : 2);
+
+    toApply.forEach(({ formal, casual }) => {
+      const regex = new RegExp(`\\b${formal}\\b`, 'gi');
+      modified = modified.replace(regex, casual);
+    });
+
+    return modified;
+  }
+
+  /**
+   * Adiciona conector natural no início (20% de chance)
+   */
+  static addNaturalConnector(message: string): string {
+    if (Math.random() > 0.2) return message;
+
+    const connector = BrazilianColloquialisms.naturalConnectors[
+      Math.floor(Math.random() * BrazilianColloquialisms.naturalConnectors.length)
+    ];
+
+    return `${connector} ${message.charAt(0).toLowerCase()}${message.slice(1)}`;
+  }
+
+  /**
+   * Adiciona pausa pensativa ocasional (15% de chance)
+   */
+  static addThinkingPause(message: string): string {
+    if (Math.random() > 0.15) return message;
+
+    const pause = BrazilianColloquialisms.thinkingPauses[
+      Math.floor(Math.random() * BrazilianColloquialisms.thinkingPauses.length)
+    ];
+
+    // Adiciona no início ou meio da frase
+    if (Math.random() < 0.5) {
+      return `${pause} ${message.charAt(0).toLowerCase()}${message.slice(1)}`;
+    } else {
+      // Insere no meio em ponto natural (., !)
+      const breakPoints = ['. ', '! '];
+      for (const bp of breakPoints) {
+        if (message.includes(bp)) {
+          return message.replace(bp, `${bp}${pause} `);
+        }
+      }
+      return `${pause} ${message}`;
+    }
+  }
+}
+
+// Export helper function for easy integration (com técnicas Alecrim)
 export function humanizeResponse(
   baseMessage: string,
   userId: string,
@@ -636,6 +754,15 @@ export function humanizeResponse(
 
   // Adapt to user's style
   message = CommunicationStyleTracker.adaptMessage(userId, message);
+
+  // [NOVO] Aplicar expressões regionais (técnica Alecrim)
+  message = RegionalExpressionApplier.applyRegionalExpressions(message);
+
+  // [NOVO] Adicionar conector natural ocasional (técnica Alecrim)
+  message = RegionalExpressionApplier.addNaturalConnector(message);
+
+  // [NOVO] Adicionar pausa pensativa ocasional (técnica Alecrim)
+  message = RegionalExpressionApplier.addThinkingPause(message);
 
   // Occasionally add natural imperfection
   if (NaturalImperfections.shouldAddImperfection()) {
