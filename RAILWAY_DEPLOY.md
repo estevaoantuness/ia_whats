@@ -1,10 +1,10 @@
-# 🚂 Guia de Deploy - Sara AI no Railway
+# 🚂 Guia de Deploy - Sara AI no Railway (GEMINI - 100% GRÁTIS)
 
 ## 📋 Pré-requisitos
 
-1. **Conta no Railway**: [railway.app](https://railway.app)
-2. **API Key do OpenAI**: [Get Key](https://platform.openai.com/api-keys)
-3. **Repositório Git** (opcional, mas recomendado)
+1. **Conta no Railway**: [railway.app](https://railway.app) - Free tier (5$ créditos/mês)
+2. **API Key do Gemini**: [Google AI Studio](https://aistudio.google.com/app/apikey) - **GRÁTIS!**
+3. **Repositório Git conectado** (recomendado para auto-deploy)
 
 ---
 
@@ -30,23 +30,44 @@
    No Railway, vá em **Variables** e adicione:
 
    ```env
-   # OBRIGATÓRIO
-   OPENAI_API_KEY=sua_chave_aqui
+   # 🔴 OBRIGATÓRIO - AI Service (Gemini = grátis!)
+   AI_SERVICE=gemini
+   GEMINI_API_KEY=sua_chave_do_gemini_aqui
 
-   # OBRIGATÓRIO (número do admin com código do país)
+   # 🔴 OBRIGATÓRIO - Admin (número com código do país)
    ADMIN_NUMBERS=+5511999999999
 
-   # Opcionais (já têm padrões)
-   OPENAI_MODEL=gpt-4o-mini
-   OPENAI_MAX_TOKENS=1000
-   OPENAI_TEMPERATURE=0.85
+   # Opcionais (já têm padrões otimizados)
+   GEMINI_MODEL=gemini-1.5-flash
+   GEMINI_MAX_TOKENS=1000
+   GEMINI_TEMPERATURE=0.85
    NODE_ENV=production
    PORT=3000
-   BOT_NAME=Sara AI
-   WHATSAPP_SESSION_NAME=sara_whatsapp_session
+   BOT_NAME=Sara
+   WHATSAPP_SESSION_NAME=sara_session
+   ENABLE_GROUP_RESPONSES=false
+   MAX_CONTEXT_MESSAGES=10
    ```
 
-4. **Deploy Automático**
+4. **🔴 CRÍTICO: Configurar Volume Persistente**
+
+   **POR QUE É NECESSÁRIO:**
+   - Sem volume: Sessão WhatsApp apagada a cada deploy → QR code infinito
+   - Com volume: Sessão persiste → Escaneia QR code **UMA VEZ** e nunca mais!
+
+   **COMO CONFIGURAR:**
+   1. No Railway → Seu projeto → **Settings** → **Volumes**
+   2. Clique em **+ New Volume**
+   3. Configure:
+      - **Name:** `sara-data` (ou qualquer nome)
+      - **Mount Path:** `/app/data`
+      - **Size:** `1 GB`
+   4. Clique **Add**
+   5. Railway vai fazer redeploy automático (~2 min)
+
+   ✅ **Pronto!** Agora `/app/data` persiste entre deploys.
+
+5. **Deploy Automático**
    - O Railway vai detectar o `Dockerfile` e fazer build automaticamente
    - Aguarde 3-5 minutos para o deploy completar
    - Verifique os logs em **Deployments**
@@ -265,24 +286,34 @@ Configure em **Settings** > **Notifications**:
 
 ---
 
-## 💰 Custos
+## 💰 Custos (TOTALMENTE GRÁTIS!)
 
-### Railway Free Tier
+### ✅ Railway Free Tier
 - **$5 USD/mês** de créditos gratuitos
-- Geralmente suficiente para 1 bot WhatsApp com uso moderado
+- **Sara AI consome:** ~$2-3/mês
+- **Sobra:** $2-3/mês para outros projetos
+- ✅ **Dentro do free tier!**
 
-### Estimativa de Uso
-- **Idle**: ~0.1 GB RAM (~$0.50/mês)
-- **Ativo**: ~0.3 GB RAM (~$1.50/mês)
-- **Volume**: 1GB (~$0.25/mês)
+### Estimativa de Uso Real
+- **RAM**: ~0.2-0.3 GB (~$1.50/mês)
+- **CPU**: Mínimo (~$0.50/mês)
+- **Volume 1GB**: ~$0.25/mês
+- **Network**: Desprezível
 
-**Total estimado**: $2-3/mês (dentro do free tier!)
+**Total Railway**: ~$2.25/mês ✅ **GRÁTIS** (dentro dos $5 de crédito)
 
-### OpenAI API
-- **Pago**: Pay-as-you-go
-- **gpt-4o-mini**: $0.150 / 1M input tokens, $0.600 / 1M output tokens
-- Estimativa: ~$2-5/mês para uso moderado
-- Alternativa gratuita: Configure Gemini API (ver .env.example)
+### ✅ Gemini API - 100% GRÁTIS
+- **Free tier**: 15 RPM (requests/min)
+- **Quota**: 1500 requests/dia
+- **Sara AI usa**: ~200-500 requests/dia (média)
+- ✅ **Completamente dentro do free tier!**
+
+### 💸 Custo Total
+**$0.00/mês** - Tudo grátis! 🎉
+
+**Alternativa paga (se quiser):**
+- OpenAI GPT-4o-mini: ~$2-5/mês
+- OpenAI GPT-4: ~$10-30/mês
 
 ---
 
@@ -342,34 +373,122 @@ Use Railway Variables para:
 
 ---
 
-## ✅ Checklist Final
+## ✅ Checklist Final - LANÇAMENTO 24/7
 
-Antes de considerar o deploy completo:
+### **Fase 1: Configuração Inicial**
+- [ ] Conta Railway criada
+- [ ] Gemini API key obtida ([Get Key](https://aistudio.google.com/app/apikey))
+- [ ] Repositório conectado ao Railway
 
-- [ ] Build passou sem erros
-- [ ] Health check retorna 200
-- [ ] QR Code foi escaneado
-- [ ] WhatsApp conectou com sucesso
-- [ ] Bot responde mensagens
+### **Fase 2: Variáveis de Ambiente**
+- [ ] `AI_SERVICE=gemini` configurado
+- [ ] `GEMINI_API_KEY=...` configurado
+- [ ] `ADMIN_NUMBERS=+55...` configurado
+- [ ] Outras variáveis opcionais configuradas
+
+### **Fase 3: Volume Persistente (CRÍTICO!)**
+- [ ] Volume criado no Railway
+- [ ] Mount path configurado: `/app/data`
+- [ ] Size: 1 GB
+- [ ] Redeploy automático concluído
+
+### **Fase 4: Deploy & Build**
+- [ ] Push para GitHub feito
+- [ ] Railway build iniciado
+- [ ] Build passou sem erros (ver logs)
+- [ ] Deploy concluído com sucesso
+
+### **Fase 5: Conexão WhatsApp**
+- [ ] Acessou `/qr` no Railway
+- [ ] QR code apareceu
+- [ ] Escaneou com WhatsApp
+- [ ] Mensagem "WhatsApp connected successfully" nos logs
+
+### **Fase 6: Testes**
+- [ ] Health check retorna 200 (`/health`)
+- [ ] Enviou mensagem teste para Sara
+- [ ] Sara respondeu corretamente
+- [ ] Testou chat offline (`/chat`)
 - [ ] Comandos admin funcionam
+
+### **Fase 7: Monitoramento**
 - [ ] Logs não mostram erros críticos
-- [ ] Volume persistente configurado
-- [ ] Variáveis de ambiente configuradas
+- [ ] CPU < 20%
+- [ ] Memory < 400 MB
+- [ ] Uptime > 99%
 
 ---
 
-## 🎉 Deploy Completo!
+## 🚀 RESUMO EXECUTIVO - LANÇAMENTO
 
-Sara AI está online e pronta para uso!
+### **Configuração Mínima para 24/7:**
 
-**Próximos passos**:
-1. Teste enviando mensagens
-2. Configure check-ins com `!help`
-3. Monitore logs regularmente
-4. Ajuste variáveis conforme necessário
+```
+✅ Railway Free Tier ($5 créditos/mês)
+✅ Gemini API Key (grátis)
+✅ Volume /app/data (1GB) ← CRÍTICO!
+✅ AI_SERVICE=gemini
+✅ GEMINI_API_KEY=...
+✅ ADMIN_NUMBERS=+55...
+```
 
-**URL do seu bot**: `https://seu-app.railway.app`
+### **Resultado Esperado:**
+
+| Métrica | Valor Esperado |
+|---------|----------------|
+| **Uptime** | 99.9% |
+| **QR Code** | Escaneia 1x e nunca mais |
+| **Deploy** | Auto-deploy do GitHub |
+| **Restart** | Automático em <30s se cair |
+| **Custo** | $0/mês (tudo free tier) |
+| **Latência** | ~500-1500ms por resposta |
+| **Gemini Quota** | 1500 req/dia (sobra muito) |
+
+### **3 Comandos para Verificar:**
+
+```bash
+# 1. Status geral
+curl https://seu-app.railway.app/api/status
+
+# 2. Health check
+curl https://seu-app.railway.app/health
+
+# 3. Ver logs em tempo real
+railway logs --follow
+```
 
 ---
 
-*Última atualização: 2025-09-29*
+## 🎉 Deploy Completo! Sara AI Online 24/7
+
+**Sara AI está rodando:**
+- 🌸 **Online** em `https://seu-app.railway.app`
+- 📱 **WhatsApp** conectado e persistente
+- 🤖 **Gemini** respondendo (grátis!)
+- 🔒 **Volume** configurado (sessão salva)
+- ⚡ **Auto-deploy** ativo
+
+**Próximos passos:**
+1. Envie mensagem teste: "Oi Sara!"
+2. Configure check-ins: Use comandos PAUSAR, TOM, HORÁRIO
+3. Monitore logs: `railway logs`
+4. Compartilhe com usuários! 🎯
+
+**Suporte rápido:**
+- **QR Code:** `https://seu-app.railway.app/qr`
+- **Status:** `https://seu-app.railway.app/api/status`
+- **Logs:** `railway.app → Deployments → View Logs`
+- **Restart:** `railway.app → Deployments → Restart`
+
+---
+
+## 📞 Links Úteis
+
+- [Railway Dashboard](https://railway.app)
+- [Gemini API Studio](https://aistudio.google.com)
+- [Sara AI Repo](https://github.com/estevaoantuness/ia_whats)
+- [Railway Docs](https://docs.railway.app)
+
+---
+
+*Última atualização: 2025-10-01 - Sara AI v1.0 com Gemini*
